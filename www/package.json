@@ -26,11 +26,16 @@
     "url": "https://github.com/rustwasm/create-wasm-app/issues"
   },
   "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
+  "dependencies": {
+    "chip8-emulator": "../pkg"
+  },
   "devDependencies": {
+    "copy-webpack-plugin": "^5.0.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
     "hello-wasm-pack": "^0.1.0",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.5",
-    "copy-webpack-plugin": "^5.0.0"
+    "webpack-dev-server": "^3.1.5"
   }
 }

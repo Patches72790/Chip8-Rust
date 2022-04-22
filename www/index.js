@@ -1,3 +1,11 @@
-import * as wasm from "hello-wasm-pack";
+import * as chip8 from 'chip8-emulator';
 
-wasm.greet();
+const cpu = chip8.Cpu.new();
+
+const renderLoop = () => {
+  cpu.tick();
+
+  requestAnimationFrame(renderLoop);
+};
+
+requestAnimationFrame(renderLoop)

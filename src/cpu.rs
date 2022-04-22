@@ -84,6 +84,7 @@ impl Cpu {
     }
 
     pub fn tick(&mut self) {
+        println!("Here I am");
         self.interpret();
     }
 
