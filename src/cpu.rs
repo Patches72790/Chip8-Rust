@@ -1,24 +1,27 @@
+use crate::types::{Address, RegData};
+use fixedbitset::FixedBitSet;
+
 /// 16 General Purpose registers for use in arithmetic and
 /// logical operations plus a memory addressing register `i`
 /// for reading/writing memory.
 struct Registers {
-    v0: u8,
-    v1: u8,
-    v2: u8,
-    v3: u8,
-    v4: u8,
-    v5: u8,
-    v6: u8,
-    v7: u8,
-    v8: u8,
-    v9: u8,
-    va: u8,
-    vb: u8,
-    vc: u8,
-    vd: u8,
-    ve: u8,
-    vf: u8,
-    i: u16, // used for writing to/from memory
+    pub v0: RegData,
+    pub v1: RegData,
+    pub v2: RegData,
+    pub v3: RegData,
+    pub v4: RegData,
+    pub v5: RegData,
+    pub v6: RegData,
+    pub v7: RegData,
+    pub v8: RegData,
+    pub v9: RegData,
+    pub va: RegData,
+    pub vb: RegData,
+    pub vc: RegData,
+    pub vd: RegData,
+    pub ve: RegData,
+    pub vf: RegData,
+    pub i: Address, // used for writing to/from memory
 }
 
 impl Registers {
@@ -48,14 +51,31 @@ impl Registers {
 /// Instruction enum for Chip 8 instructions
 /// are all prefixed with `i` for readability
 /// and for compilation in rust.
+#[derive(Clone, Copy)]
 enum Instruction {
-    i1NNN(u16), // Jump to address NNN
-    iBNNN(u16), // Jump to adresss NNN + V0
-    iANNN(u16), // Store memory address NNN in Register i
+    i1NNN(Address), // Jump to address NNN
+    iBNNN(Address), // Jump to adresss NNN + V0
+    iANNN(Address), // Store memory address NNN in Register i
 }
 
 struct Cpu {
-    memory: [Instruction; 4096], // 12 KB of memory, instructions starting at 0x200
+    memory: [Option<Instruction>; 4096], // 12 KB of memory, instructions starting at 0x200
     registers: Registers,
     clock: u128,
+    display: FixedBitSet, // display fixed at 64 * 32 pixels
+    ip: u16,              // instruction pointer
+}
+
+impl Cpu {
+    pub fn new() -> Cpu {
+        Cpu {
+            memory: [None; 4096],
+            registers: Registers::new(),
+            clock: 0,
+            display: FixedBitSet::with_capacity(64 * 32),
+            ip: 0,
+        }
+    }
+
+    pub fn interpret(&self) {}
 }
