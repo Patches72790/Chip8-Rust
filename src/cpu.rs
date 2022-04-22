@@ -55,9 +55,11 @@ impl Registers {
 #[derive(Clone, Copy)]
 #[repr(u16)]
 pub enum Instruction {
-    i1NNN(Address), // Jump to address NNN
-    iBNNN(Address), // Jump to adresss NNN + V0
-    iANNN(Address), // Store memory address NNN in Register i
+    i00E0,              // Clears the display
+    i1NNN(Address),     // Jump to address NNN
+    iBNNN(Address),     // Jump to adresss NNN + V0
+    iANNN(Address),     // Store memory address NNN in Register i
+    i6XNN(u8, RegData), // store value NN at register X
 }
 
 #[wasm_bindgen]
@@ -66,9 +68,10 @@ pub struct Cpu {
     registers: Registers,
     clock: u128,
     display: FixedBitSet, // display fixed at 64 * 32 pixels
-    ip: u16,              // instruction pointer
+    ip: usize,            // instruction pointer
 }
 
+#[wasm_bindgen]
 impl Cpu {
     pub fn new() -> Cpu {
         Cpu {
@@ -80,7 +83,32 @@ impl Cpu {
         }
     }
 
-    pub fn interpret(&self) {}
+    pub fn tick(&mut self) {
+        self.interpret();
+    }
+
+    /// Main interpreter loop for fetching, decoding, executing instructions.
+    /// This is invoked each "cycle" from the public tick function in the cpu impl.
+    fn interpret(&mut self) {
+        while let Some(instruction) = self.fetch_instruction() {
+            match instruction {
+                Instruction::i00E0 => self.display.clear(),
+                Instruction::i1NNN(address) => self.ip = address as usize,
+                _ => todo!("Instruction not yet implemented"),
+            }
+        }
+    }
+
+    fn fetch_instruction(&self) -> Option<Instruction> {
+        match self.memory.get(self.ip) {
+            Some(instr) => *instr,
+            None => None,
+        }
+    }
+
+    fn decode_instruction(&self) {
+        todo!("Need to implement decode")
+    }
 }
 
 impl Default for Cpu {
