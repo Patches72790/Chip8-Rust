@@ -74,6 +74,7 @@ pub struct Cpu {
 #[wasm_bindgen]
 impl Cpu {
     pub fn new() -> Cpu {
+        println!("Creating a new cpu");
         Cpu {
             memory: [None; 4096],
             registers: Registers::new(),
@@ -83,8 +84,11 @@ impl Cpu {
         }
     }
 
+    pub fn render(&self) -> String {
+        self.to_string()
+    }
+
     pub fn tick(&mut self) {
-        println!("Here I am");
         self.interpret();
     }
 
@@ -115,5 +119,19 @@ impl Cpu {
 impl Default for Cpu {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl std::fmt::Display for Cpu {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for line in self.display.as_slice().chunks(8_usize) {
+            for &pixel in line {
+                let symbol = if pixel == 1 { '◼' } else { '◻' };
+                write!(f, "{}", symbol)?;
+            }
+            writeln!(f)?;
+        }
+
+        Ok(())
     }
 }
