@@ -1,5 +1,6 @@
 use crate::types::{Address, RegData};
 use fixedbitset::FixedBitSet;
+use wasm_bindgen::prelude::*;
 
 /// 16 General Purpose registers for use in arithmetic and
 /// logical operations plus a memory addressing register `i`
@@ -52,13 +53,15 @@ impl Registers {
 /// are all prefixed with `i` for readability
 /// and for compilation in rust.
 #[derive(Clone, Copy)]
-enum Instruction {
+#[repr(u16)]
+pub enum Instruction {
     i1NNN(Address), // Jump to address NNN
     iBNNN(Address), // Jump to adresss NNN + V0
     iANNN(Address), // Store memory address NNN in Register i
 }
 
-struct Cpu {
+#[wasm_bindgen]
+pub struct Cpu {
     memory: [Option<Instruction>; 4096], // 12 KB of memory, instructions starting at 0x200
     registers: Registers,
     clock: u128,
@@ -78,4 +81,10 @@ impl Cpu {
     }
 
     pub fn interpret(&self) {}
+}
+
+impl Default for Cpu {
+    fn default() -> Self {
+        Self::new()
+    }
 }
