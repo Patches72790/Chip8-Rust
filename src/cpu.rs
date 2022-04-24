@@ -1,4 +1,4 @@
-use crate::types::{Address, RegData};
+use crate::types::{Address, RegData, Register};
 use fixedbitset::FixedBitSet;
 use wasm_bindgen::prelude::*;
 
@@ -55,11 +55,11 @@ impl Registers {
 #[derive(Clone, Copy)]
 #[repr(u16)]
 pub enum Instruction {
-    i00E0,              // Clears the display
-    i1NNN(Address),     // Jump to address NNN
-    iBNNN(Address),     // Jump to adresss NNN + V0
-    iANNN(Address),     // Store memory address NNN in Register i
-    i6XNN(u8, RegData), // store value NN at register X
+    i00E0,                    // Clears the display
+    i1NNN(Address),           // Jump to address NNN
+    iBNNN(Address),           // Jump to adresss NNN + V0
+    iANNN(Address),           // Store memory address NNN in Register i
+    i6XNN(Register, RegData), // store value NN at register X
 }
 
 #[wasm_bindgen]
@@ -99,8 +99,36 @@ impl Cpu {
             match instruction {
                 Instruction::i00E0 => self.display.clear(),
                 Instruction::i1NNN(address) => self.ip = address as usize,
+                Instruction::iANNN(address) => self.registers.i = address,
+                Instruction::iBNNN(address) => {
+                    let reg_v0 = self.registers.v0;
+                    self.ip = (address + (reg_v0 as u16)) as usize;
+                }
+                Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
                 _ => todo!("Instruction not yet implemented"),
             }
+        }
+    }
+
+    fn store_at_register(&mut self, reg: Register, data: RegData) {
+        match reg {
+            Register::V0 => self.registers.v0 = data,
+            Register::V1 => self.registers.v1 = data,
+            Register::V2 => self.registers.v2 = data,
+            Register::V3 => self.registers.v3 = data,
+            Register::V4 => self.registers.v4 = data,
+            Register::V5 => self.registers.v5 = data,
+            Register::V6 => self.registers.v6 = data,
+            Register::V7 => self.registers.v7 = data,
+            Register::V8 => self.registers.v8 = data,
+            Register::V9 => self.registers.v9 = data,
+            Register::Va => self.registers.va = data,
+            Register::Vb => self.registers.vb = data,
+            Register::Vc => self.registers.vc = data,
+            Register::Vd => self.registers.vd = data,
+            Register::Ve => self.registers.ve = data,
+            Register::Vf => self.registers.vf = data,
+            _ => panic!("Error no register of value {reg}"),
         }
     }
 
