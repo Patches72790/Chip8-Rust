@@ -55,11 +55,13 @@ impl Registers {
 #[derive(Clone, Copy)]
 #[repr(u16)]
 pub enum Instruction {
-    i00E0,                    // Clears the display
-    i1NNN(Address),           // Jump to address NNN
-    iBNNN(Address),           // Jump to adresss NNN + V0
-    iANNN(Address),           // Store memory address NNN in Register i
-    i6XNN(Register, RegData), // store value NN at register X
+    i00E0,                             // Clears the display
+    i1NNN(Address),                    // Jump to address NNN
+    iANNN(Address),                    // Store memory address NNN in Register i
+    iBNNN(Address),                    // Jump to adresss NNN + V0
+    i6XNN(Register, RegData),          // store value NN at register X
+    i7XNN(Register, RegData),          // Add data NN to register X
+    iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
 }
 
 #[wasm_bindgen]
