@@ -1,6 +1,7 @@
 use crate::types::{Address, RegData, Register};
 use fixedbitset::FixedBitSet;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 /// 16 General Purpose registers for use in arithmetic and
 /// logical operations plus a memory addressing register `i`
@@ -55,34 +56,47 @@ impl Registers {
 #[derive(Clone, Copy)]
 #[repr(u16)]
 pub enum Instruction {
-    i00E0,                             // Clears the display
-    i1NNN(Address),                    // Jump to address NNN
-    iANNN(Address),                    // Store memory address NNN in Register i
-    iBNNN(Address),                    // Jump to adresss NNN + V0
-    i6XNN(Register, RegData),          // store value NN at register X
-    i7XNN(Register, RegData),          // Add data NN to register X
+    i00E0,                              // Clears the display
+    i1NNN(Address),                     // Jump to address NNN
+    iANNN(Address),                     // Store memory address NNN in Register i
+    iBNNN(Address),                     // Jump to adresss NNN + V0
+    i6XNN(Register, RegData),           // store value NN at register X
+    i7XNN(Register, RegData),           // Add data NN to register X
     iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
 }
 
 #[wasm_bindgen]
 pub struct Cpu {
-    memory: [Option<Instruction>; 4096], // 12 KB of memory, instructions starting at 0x200
+    memory: Vec<Instruction>, // 12 KB of memory, instructions starting at 0x200
     registers: Registers,
     clock: u128,
     display: FixedBitSet, // display fixed at 64 * 32 pixels
     ip: usize,            // instruction pointer
+    height: usize,
+    width: usize,
 }
+
+static INSTRUCTIONS_PER_SECOND: u16 = 700;
 
 #[wasm_bindgen]
 impl Cpu {
     pub fn new() -> Cpu {
-        println!("Creating a new cpu");
+        let height = 64;
+        let width = 32;
+        let size = height * width;
+        let mut display = FixedBitSet::with_capacity(size);
+        for i in 0..(64 * 32) {
+            display.set(i, i % 2 == 0 );
+        }
+
         Cpu {
-            memory: [None; 4096],
+            memory: vec![],
             registers: Registers::new(),
             clock: 0,
-            display: FixedBitSet::with_capacity(64 * 32),
+            display,
             ip: 0,
+            height,
+            width,
         }
     }
 
@@ -94,10 +108,20 @@ impl Cpu {
         self.interpret();
     }
 
+    fn get_index(&self, row: u8, col: u8) -> usize {
+        (row * (self.width as u8) + col).into()
+    }
+
     /// Main interpreter loop for fetching, decoding, executing instructions.
     /// This is invoked each "cycle" from the public tick function in the cpu impl.
     fn interpret(&mut self) {
+        let mut instruction_count = 0;
         while let Some(instruction) = self.fetch_instruction() {
+            // only run set instructions per tick of CPU
+            if instruction_count >= INSTRUCTIONS_PER_SECOND {
+                break;
+            }
+            instruction_count += 1;
             match instruction {
                 Instruction::i00E0 => self.display.clear(),
                 Instruction::i1NNN(address) => self.ip = address as usize,
@@ -107,6 +131,7 @@ impl Cpu {
                     self.ip = (address + (reg_v0 as u16)) as usize;
                 }
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
+                Instruction::iDXYN(reg_v0, reg_v1, data) => {}
                 _ => todo!("Instruction not yet implemented"),
             }
         }
@@ -135,10 +160,7 @@ impl Cpu {
     }
 
     fn fetch_instruction(&self) -> Option<Instruction> {
-        match self.memory.get(self.ip) {
-            Some(instr) => *instr,
-            None => None,
-        }
+        self.memory.get(self.ip).copied()
     }
 
     fn decode_instruction(&self) {
@@ -154,14 +176,30 @@ impl Default for Cpu {
 
 impl std::fmt::Display for Cpu {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for line in self.display.as_slice().chunks(8_usize) {
-            for &pixel in line {
-                let symbol = if pixel == 1 { '◼' } else { '◻' };
-                write!(f, "{}", symbol)?;
+        for row in 0..self.height {
+            for col in 0..self.width {
+                let index = row * self.width + col;
+                if self.display[index] {
+                    write!(f, "🦑")?;
+                } else {
+                    write!(f, "🐙")?;
+                }
             }
             writeln!(f)?;
         }
 
         Ok(())
     }
+}
+
+#[wasm_bindgen_test]
+fn test_ibm_logo() {
+    let mut cpu = Cpu::new();
+    cpu.registers.v0 = 0;
+    cpu.registers.v1 = 0;
+    cpu.memory = vec![Instruction::iDXYN(Register::V0, Register::V1, 1)];
+
+    cpu.interpret();
+
+    assert_eq!(cpu.display.count_ones(..), 1);
 }
