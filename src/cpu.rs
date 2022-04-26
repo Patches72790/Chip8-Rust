@@ -1,3 +1,5 @@
+use std::ops::BitXor;
+
 use crate::types::{Address, RegData, Register};
 use fixedbitset::FixedBitSet;
 use wasm_bindgen::prelude::*;
@@ -86,7 +88,7 @@ impl Cpu {
         let size = height * width;
         let mut display = FixedBitSet::with_capacity(size);
         for i in 0..(64 * 32) {
-            display.set(i, i % 2 == 0 );
+            display.set(i, i % 2 == 0);
         }
 
         Cpu {
@@ -106,6 +108,7 @@ impl Cpu {
 
     pub fn tick(&mut self) {
         self.interpret();
+        self.clock += 1;
     }
 
     fn get_index(&self, row: u8, col: u8) -> usize {
@@ -131,7 +134,12 @@ impl Cpu {
                     self.ip = (address + (reg_v0 as u16)) as usize;
                 }
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
-                Instruction::iDXYN(reg_v0, reg_v1, data) => {}
+                Instruction::iDXYN(reg_v0, reg_v1, data) => {
+                    let base_addr = self.get_index(reg_v0 as u8, reg_v1 as u8);
+                    for idx in 0..data {
+                        self.display.set(base_addr + (idx as usize), true);
+                    }
+                }
                 _ => todo!("Instruction not yet implemented"),
             }
         }
@@ -159,8 +167,14 @@ impl Cpu {
         }
     }
 
-    fn fetch_instruction(&self) -> Option<Instruction> {
-        self.memory.get(self.ip).copied()
+    ///
+    /// Fetch the instruction from memory at the CPU's instruction pointer.
+    /// The fetch instruction also automatically increments the IP to point to the
+    /// next instruction.
+    fn fetch_instruction(&mut self) -> Option<Instruction> {
+        let instr = self.memory.get(self.ip).copied();
+        self.ip += 1;
+        instr
     }
 
     fn decode_instruction(&self) {
@@ -193,13 +207,31 @@ impl std::fmt::Display for Cpu {
 }
 
 #[wasm_bindgen_test]
-fn test_ibm_logo() {
+fn test_basic_display_commands() {
     let mut cpu = Cpu::new();
-    cpu.registers.v0 = 0;
-    cpu.registers.v1 = 0;
-    cpu.memory = vec![Instruction::iDXYN(Register::V0, Register::V1, 1)];
+    cpu.memory = vec![
+        Instruction::i00E0,
+        Instruction::i6XNN(Register::V0, 0),
+        Instruction::i6XNN(Register::V1, 0),
+        Instruction::iDXYN(Register::V0, Register::V1, 1),
+    ];
 
-    cpu.interpret();
+    cpu.tick();
 
     assert_eq!(cpu.display.count_ones(..), 1);
+}
+
+#[wasm_bindgen_test]
+fn test_write_display() {
+    let mut cpu = Cpu::new();
+    cpu.memory = vec![
+        Instruction::i00E0,
+        Instruction::i6XNN(Register::V0, 0),
+        Instruction::i6XNN(Register::V1, 0),
+        Instruction::iDXYN(Register::V0, Register::V1, 5),
+    ];
+
+    cpu.tick();
+
+    assert_eq!(cpu.display.count_ones(..), 5);
 }

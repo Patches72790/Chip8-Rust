@@ -1,14 +1,14 @@
 {
   "name": "create-wasm-app",
   "version": "0.1.0",
-  "description": "create an app to consume rust-generated wasm packages",
+  "description": "A Chip8 emulator written in Rust, Web Assembly, and JavaScript!",
   "main": "index.js",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
-    "build": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js",
-    "start": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server"
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack-dev-server"
   },
   "repository": {
     "type": "git",
@@ -20,12 +20,12 @@
     "rust",
     "webpack"
   ],
-  "author": "Ashley Williams <ashley666ashley@gmail.com>",
+  "author": "Patrick Harvey",
   "license": "(MIT OR Apache-2.0)",
   "bugs": {
     "url": "https://github.com/rustwasm/create-wasm-app/issues"
   },
-  "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
+  "homepage": "https://github.com/Patches72790/Chip8-Rust",
   "dependencies": {
     "chip8-emulator": "../pkg"
   },
