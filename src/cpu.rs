@@ -42,8 +42,8 @@ static INSTRUCTIONS_PER_SECOND: u16 = 1;
 impl Cpu {
     pub fn new() -> Cpu {
         set_panic_hook();
-        let height = 64;
-        let width = 32;
+        let height = 32;
+        let width = 64;
         let size = height * width;
         let mut display = FixedBitSet::with_capacity(size);
         for i in 0..(64 * 32) {
@@ -51,7 +51,7 @@ impl Cpu {
         }
 
         Cpu {
-            memory: [0u8; 4096],
+            memory: Cpu::initialize_memory(),
             registers: [0u8; 16],
             i: 0,
             clock: 0,
@@ -60,6 +60,37 @@ impl Cpu {
             height,
             width,
         }
+    }
+
+    /// Initialize memory with sprite fonts and
+    /// any other possibilities. The font data is stored
+    /// from 0x050 - 0x09F in memory before the code instructions
+    /// which start at 0x200.
+    fn initialize_memory() -> [u8; 4096] {
+        let mut memory = [0u8; 4096];
+        // 0
+        memory[0x050] = 0xF0;
+        memory[0x051] = 0x90;
+        memory[0x052] = 0x90;
+        memory[0x053] = 0x90;
+        memory[0x054] = 0xF0;
+
+        // 1
+        memory[0x055] = 0x20;
+        memory[0x056] = 0x60;
+        memory[0x057] = 0x20;
+        memory[0x058] = 0x20;
+        memory[0x059] = 0x70;
+
+        // 2
+        memory[0x05a] = 0xF0;
+        memory[0x05b] = 0x10;
+        memory[0x05c] = 0xF0;
+        memory[0x05d] = 0x80;
+        memory[0x05e] = 0xF0;
+
+        // todo 3..F
+        memory
     }
 
     /// TODO! MUST CHANGE EVENTUALLY
@@ -74,8 +105,8 @@ impl Cpu {
         instructions[0x205] = 0x10;
         instructions[0x206] = 0xD0;
         instructions[0x207] = 0x11;
-        //instructions[0x200] = 0x00;
-        //instructions[0x201] = 0xE1;
+        instructions[0x200] = 0x00;
+        instructions[0x201] = 0xE1;
         //instructions[0x202] = 0x00;
         //instructions[0x203] = 0xE0;
 
@@ -117,11 +148,16 @@ impl Cpu {
                     self.ip = (address + (reg_v0 as u16)) as usize;
                 }
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
-                Instruction::iDXYN(reg_v0, reg_v1, data) => {
-                    let base_addr = self.get_index(reg_v0 as u8, reg_v1 as u8);
-                    for idx in 0..data {
-                        self.display.set(base_addr + (idx as usize), true);
-                    }
+                Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
+                    // Draw sprites starting at pixel X, Y
+                    // N bytes top - down starting with sprite data starting from reg I
+                    //let base_addr = self.get_index(reg_v0 as u8, reg_v1 as u8);
+                    //let base_sprite_addr = self.i;
+                    //for idx in 0..data {
+                    //    self.display.set(base_addr + (idx as usize), true);
+                    //}
+                    let starting_row = reg_v0 as u8;
+                    let starting_col = reg_v1 as u8;
                 }
                 _ => panic!("Instruction not yet implemented"),
             }
@@ -205,6 +241,14 @@ impl Cpu {
             (0xB, x, y, z) => {
                 let reassembled_jump_address = (x << 8) | (y << 4) | z;
                 Some(Instruction::iBNNN(reassembled_jump_address))
+            }
+            (0xD, reg_1, reg_2, n) => {
+                let register_1 = Register::from(reg_1);
+                let register_2 = Register::from(reg_2);
+                let data: u8 = n
+                    .try_into()
+                    .expect("Error casting u16 to u8 in decoder for iDXYN");
+                Some(Instruction::iDXYN(register_1, register_2, data))
             }
             _ => panic!(
                 "Unimplemented instruction [{},{},{},{}]\nIP: {}\nMemory: {:?}",
