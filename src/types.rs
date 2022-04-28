@@ -20,7 +20,30 @@ pub enum Register {
     Vd,
     Ve,
     Vf,
-    I, // used for writing to/from memory
+}
+
+impl From<u16> for Register {
+    fn from(num: u16) -> Self {
+        match num {
+            0x0 => Register::V0,
+            0x1 => Register::V1,
+            0x2 => Register::V2,
+            0x3 => Register::V3,
+            0x4 => Register::V4,
+            0x5 => Register::V5,
+            0x6 => Register::V6,
+            0x7 => Register::V7,
+            0x8 => Register::V8,
+            0x9 => Register::V9,
+            0xa => Register::Va,
+            0xb => Register::Vb,
+            0xc => Register::Vc,
+            0xd => Register::Vd,
+            0xe => Register::Ve,
+            0xf => Register::Vf,
+            e => panic!("Error register {e} doesn't exist"),
+        }
+    }
 }
 
 impl std::fmt::Display for Register {
@@ -42,7 +65,6 @@ impl std::fmt::Display for Register {
             Register::Vd => write!(f, "[Register VD]"),
             Register::Ve => write!(f, "[Register VE]"),
             Register::Vf => write!(f, "[Register VF]"),
-            Register::I => write!(f, "[Register I]"),
         }
     }
 }

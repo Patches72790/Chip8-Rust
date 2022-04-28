@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "start2": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server"
   },
   "repository": {
     "type": "git",
