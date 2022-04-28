@@ -56,7 +56,7 @@ impl Registers {
 /// are all prefixed with `i` for readability
 /// and for compilation in rust.
 #[derive(Clone, Copy)]
-#[repr(u16)]
+#[repr(u8)]
 pub enum Instruction {
     i00E0,                              // Clears the display
     i1NNN(Address),                     // Jump to address NNN
@@ -69,7 +69,8 @@ pub enum Instruction {
 
 #[wasm_bindgen]
 pub struct Cpu {
-    memory: Vec<Instruction>, // 12 KB of memory, instructions starting at 0x200
+    //memory: Vec<Instruction>, // 12 KB of memory, instructions starting at 0x200
+    memory: [u8; 4096],
     registers: Registers,
     clock: u128,
     display: FixedBitSet, // display fixed at 64 * 32 pixels
@@ -92,7 +93,7 @@ impl Cpu {
         }
 
         Cpu {
-            memory: vec![],
+            memory: [0u8; 4096],
             registers: Registers::new(),
             clock: 0,
             display,
@@ -174,7 +175,6 @@ impl Cpu {
     fn fetch_instruction(&mut self) -> Option<Instruction> {
         let instr = self.memory.get(self.ip).copied();
         self.ip += 1;
-        instr
     }
 
     fn decode_instruction(&self) {
