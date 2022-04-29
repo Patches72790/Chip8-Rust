@@ -151,13 +151,33 @@ impl Cpu {
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
                     // N bytes top - down starting with sprite data starting from reg I
-                    //let base_addr = self.get_index(reg_v0 as u8, reg_v1 as u8);
-                    //let base_sprite_addr = self.i;
-                    //for idx in 0..data {
-                    //    self.display.set(base_addr + (idx as usize), true);
-                    //}
-                    let starting_row = reg_v0 as u8;
-                    let starting_col = reg_v1 as u8;
+                    let mut current_row = (reg_v0 as u8) & ((self.height - 1) as u8);
+                    let current_col = (reg_v1 as u8) & ((self.width - 1) as u8);
+                    let base_sprite_addr: usize = self.i.into();
+
+                    // this loop handles the sprite accesses from memory
+                    for offset in 0..num_rows {
+                        let sprite_byte = self.memory[base_sprite_addr + (offset as usize)];
+
+                        // this loop loops through bits in byte of sprite
+                        for bit in 0..8 {
+                            // TODO Need to check for wrapping around side of display
+                            let index = self.get_index(current_row, current_col + bit);
+                            let current_pixel = self.display[index];
+
+                            // First & is mask, then shift over to first bit position
+                            let mask: u8 = 0x80 >> bit;
+                            let shift_amt = 0x07 - bit;
+                            let current_pixel_bit_is_set =
+                                ((sprite_byte & mask) >> shift_amt) == 1;
+
+                            // TODO need to check and set register VF
+                            let xored_pixel = current_pixel ^ current_pixel_bit_is_set;
+
+                            self.display.set(index, xored_pixel);
+                        }
+                        current_row += 1;
+                    }
                 }
                 _ => panic!("Instruction not yet implemented"),
             }
