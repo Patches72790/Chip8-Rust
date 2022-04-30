@@ -26,6 +26,7 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "fixedbitset",
+ "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "web-sys",

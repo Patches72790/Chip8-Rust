@@ -19,6 +19,7 @@ web-sys = { version = "0.3.57", features = [
   "FileList",
   "File",
 ] }
+js-sys = "0.3.57"
 
 [profile.release]
 opt-level = "s"

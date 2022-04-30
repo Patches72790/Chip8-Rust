@@ -1,30 +1,16 @@
 use crate::{
+    instruction::Instruction,
     types::{Address, RegData, Register},
     util::set_panic_hook,
+    BITS_IN_BYTE, INSTRUCTIONS_PER_CYCLE,
 };
 use fixedbitset::FixedBitSet;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_test::wasm_bindgen_test;
-
-/// Instruction enum for Chip 8 instructions
-/// are all prefixed with `i` for readability
-/// and for compilation in rust.
-#[derive(Clone, Copy)]
-#[repr(u8)]
-pub enum Instruction {
-    i00E0,                              // Clears the display
-    i00E1,                              // Sets all bits of display
-    i1NNN(Address),                     // Jump to address NNN
-    i6XNN(Register, RegData),           // store value NN at register X
-    i7XNN(Register, RegData),           // Add data NN to register X
-    iANNN(Address),                     // Store memory address NNN in Register i
-    iBNNN(Address),                     // Jump to adresss NNN + V0
-    iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
-}
+use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
 #[wasm_bindgen]
 pub struct Cpu {
-    //memory: Vec<Instruction>, // 12 KB of memory, instructions starting at 0x200
+    // 12 KB of memory, instructions starting at 0x200
     memory: [u8; 4096],
     registers: [RegData; 16],
     clock: u128,
@@ -34,9 +20,6 @@ pub struct Cpu {
     height: usize,
     width: usize,
 }
-
-/// Variable constant for determining cycles per second (hertz)
-static INSTRUCTIONS_PER_SECOND: u16 = 1;
 
 #[wasm_bindgen]
 impl Cpu {
@@ -90,26 +73,37 @@ impl Cpu {
         memory[0x05e] = 0xF0;
 
         // todo 3..F
+        memory[0x05f] = 0xF0;
+        memory[0x060] = 0x10;
+        memory[0x061] = 0xF0;
+        memory[0x062] = 0x10;
+        memory[0x063] = 0xF0;
+
         memory
     }
 
     /// TODO! MUST CHANGE EVENTUALLY
     /// FOR NOW JUST USING FOR TESTING INSTRUCTIONS IN MEMORY
     pub fn load_instructions(&mut self) {
-        let mut instructions = [0; 4096];
+        let mut instructions = self.memory;
         instructions[0x200] = 0x00;
         instructions[0x201] = 0xE0;
-        instructions[0x202] = 0x60;
-        instructions[0x203] = 0x00;
-        instructions[0x204] = 0x60;
-        instructions[0x205] = 0x10;
-        instructions[0x206] = 0xD0;
-        instructions[0x207] = 0x11;
-        instructions[0x200] = 0x00;
-        instructions[0x201] = 0xE1;
-        //instructions[0x202] = 0x00;
-        //instructions[0x203] = 0xE0;
+        instructions[0x202] = 0xA0;
+        instructions[0x203] = 0x50;
+        instructions[0x204] = 0xD0;
+        instructions[0x205] = 0x05;
 
+        //        instructions[0x206] = 0x60;
+        //        instructions[0x207] = 0x00;
+        //        instructions[0x208] = 0x60;
+        //        instructions[0x209] = 0x10;
+        //        instructions[0x20a] = 0xD0;
+        //        instructions[0x20b] = 0x11;
+        //        instructions[0x20c] = 0x00;
+        //        instructions[0x20d] = 0xE1;
+        //        instructions[0x20e] = 0x00;
+        //        instructions[0x20f] = 0xE0;
+        //
         self.memory = instructions;
     }
 
@@ -126,13 +120,23 @@ impl Cpu {
         (row * (self.width as u8) + col).into()
     }
 
+    pub fn disassemble(&mut self) -> Vec<js_sys::JsString> {
+        let mut instrs = vec![];
+        while let Some(instruction) = self.fetch_instruction() {
+            instrs.push(js_sys::JsString::from(instruction.to_string()));
+        }
+
+        self.ip = 0x200;
+        instrs
+    }
+
     /// Main interpreter loop for fetching, decoding, executing instructions.
     /// This is invoked each "cycle" from the public tick function in the cpu impl.
     fn interpret(&mut self) {
         let mut instruction_count = 0;
         while let Some(instruction) = self.fetch_instruction() {
             // only run set instructions per tick of CPU
-            if instruction_count >= INSTRUCTIONS_PER_SECOND {
+            if instruction_count >= INSTRUCTIONS_PER_CYCLE {
                 break;
             }
             instruction_count += 1;
@@ -142,7 +146,10 @@ impl Cpu {
                     self.display.set_range(.., true);
                 }
                 Instruction::i1NNN(address) => self.ip = address as usize,
-                Instruction::iANNN(address) => self.i = address,
+                Instruction::iANNN(address) => {
+                    self.i = address;
+                    console_log!("Set i to address {}", self.i);
+                }
                 Instruction::iBNNN(address) => {
                     let reg_v0 = self.registers[0];
                     self.ip = (address + (reg_v0 as u16)) as usize;
@@ -150,17 +157,20 @@ impl Cpu {
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
-                    // N bytes top - down starting with sprite data starting from reg I
+                    // N bytes top -> down starting with sprite data at address in reg I
                     let mut current_row = (reg_v0 as u8) & ((self.height - 1) as u8);
                     let current_col = (reg_v1 as u8) & ((self.width - 1) as u8);
                     let base_sprite_addr: usize = self.i.into();
+
+                    console_log!("Base Sprite Addr: {}", self.i);
 
                     // this loop handles the sprite accesses from memory
                     for offset in 0..num_rows {
                         let sprite_byte = self.memory[base_sprite_addr + (offset as usize)];
 
+                        console_log!("Sprite Byte {} = {}", offset, sprite_byte);
                         // this loop loops through bits in byte of sprite
-                        for bit in 0..8 {
+                        for bit in 0..BITS_IN_BYTE {
                             // TODO Need to check for wrapping around side of display
                             let index = self.get_index(current_row, current_col + bit);
                             let current_pixel = self.display[index];
@@ -168,12 +178,12 @@ impl Cpu {
                             // First & is mask, then shift over to first bit position
                             let mask: u8 = 0x80 >> bit;
                             let shift_amt = 0x07 - bit;
-                            let current_pixel_bit_is_set =
-                                ((sprite_byte & mask) >> shift_amt) == 1;
+                            let current_pixel_bit_is_set = ((sprite_byte & mask) >> shift_amt) == 1;
 
                             // TODO need to check and set register VF
                             let xored_pixel = current_pixel ^ current_pixel_bit_is_set;
 
+                            console_log!("New Pixel Value: {}", xored_pixel);
                             self.display.set(index, xored_pixel);
                         }
                         current_row += 1;
@@ -270,15 +280,16 @@ impl Cpu {
                     .expect("Error casting u16 to u8 in decoder for iDXYN");
                 Some(Instruction::iDXYN(register_1, register_2, data))
             }
-            _ => panic!(
-                "Unimplemented instruction [{},{},{},{}]\nIP: {}\nMemory: {:?}",
-                nibble_1,
-                nibble_2,
-                nibble_3,
-                nibble_4,
-                self.ip,
-                &self.memory[0x200..0x210],
-            ),
+            _ => None,
+            //_ => panic!(
+            //    "Unimplemented instruction [{},{},{},{}]\nIP: {}\nMemory: {:?}",
+            //    nibble_1,
+            //    nibble_2,
+            //    nibble_3,
+            //    nibble_4,
+            //    self.ip,
+            //    &self.memory[0x200..0x210],
+            //),
         }
     }
 }
@@ -295,9 +306,11 @@ impl std::fmt::Display for Cpu {
             for col in 0..self.width {
                 let index = row * self.width + col;
                 if self.display[index] {
-                    write!(f, "🦑")?;
+                    //write!(f, "🦑")?;
+                    write!(f, "1")?;
                 } else {
-                    write!(f, "🐙")?;
+                    //write!(f, "🐙")?;
+                    write!(f, "0")?;
                 }
             }
             writeln!(f)?;
