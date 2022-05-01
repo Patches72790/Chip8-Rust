@@ -1,6 +1,7 @@
 use crate::{
     instruction::Instruction,
     types::{Address, RegData, Register},
+    types::{REG_V0, REG_VF},
     util::set_panic_hook,
     BITS_IN_BYTE, INSTRUCTIONS_PER_CYCLE,
 };
@@ -19,6 +20,8 @@ pub struct Cpu {
     i: Address,           // special memory pointer I
     height: usize,
     width: usize,
+    pixel_on: String,
+    pixel_off: String,
 }
 
 #[wasm_bindgen]
@@ -42,6 +45,8 @@ impl Cpu {
             ip: 0x200, // Code section starts at 0x200 in memory
             height,
             width,
+            pixel_on: "◽".to_string(),
+            pixel_off: "◾".to_string(),
         }
     }
 
@@ -86,40 +91,50 @@ impl Cpu {
     /// FOR NOW JUST USING FOR TESTING INSTRUCTIONS IN MEMORY
     pub fn load_instructions(&mut self) {
         let mut instructions = self.memory;
-        instructions[0x200] = 0x00;
-        instructions[0x201] = 0xE0;
-        instructions[0x202] = 0xA0;
-        instructions[0x203] = 0x50;
-        instructions[0x204] = 0xD0;
-        instructions[0x205] = 0x05;
+        // draw sprite 0 at (0, 0)
+        instructions[0x200] = 0xA0;
+        instructions[0x201] = 0x50;
+        instructions[0x202] = 0xD0;
+        instructions[0x203] = 0x05;
 
-        //        instructions[0x206] = 0x60;
-        //        instructions[0x207] = 0x00;
-        //        instructions[0x208] = 0x60;
-        //        instructions[0x209] = 0x10;
-        //        instructions[0x20a] = 0xD0;
-        //        instructions[0x20b] = 0x11;
-        //        instructions[0x20c] = 0x00;
-        //        instructions[0x20d] = 0xE1;
-        //        instructions[0x20e] = 0x00;
-        //        instructions[0x20f] = 0xE0;
-        //
+        // draw sprite 1 at (0, 5)
+        instructions[0x204] = 0xA0;
+        instructions[0x205] = 0x55;
+        instructions[0x206] = 0xD0;
+        instructions[0x207] = 0x55;
+
         self.memory = instructions;
+    }
+
+    /// TODO! This doesn't work as it should right now.
+    /// Setting properties of cpu at runtime violates borrowing
+    /// rules in rust, so it is not allowed.
+    /// How else could I setup instructions to be loaded at runtime
+    /// without giving access to the global cpu in the JS code?
+    pub fn load_instructions_from_file(&self, bytes_array: js_sys::Uint8Array) {
+        let mut bytes_slice = vec![];
+        bytes_array.copy_to(&mut bytes_slice);
+        console_log!("Bytes array contents:\n{:?}", bytes_slice);
     }
 
     pub fn render(&self) -> String {
         self.to_string()
     }
 
+    /// The main public API representing a singular cpu "cycle"
+    /// This should be used each iteration of the main rendering loop.
     pub fn tick(&mut self) {
         self.interpret();
         self.clock += 1;
     }
 
-    fn get_index(&self, row: u8, col: u8) -> usize {
-        (row * (self.width as u8) + col).into()
+    fn get_index(&self, row: usize, col: usize) -> usize {
+        row * (self.width) + col
     }
 
+    /// Disassembler utility for debugging the instructions in the
+    /// front end code. The IP must be reset back to initial state
+    /// as the code reuses `Cpu::fetch_instruction`.
     pub fn disassemble(&mut self) -> Vec<js_sys::JsString> {
         let mut instrs = vec![];
         while let Some(instruction) = self.fetch_instruction() {
@@ -146,12 +161,9 @@ impl Cpu {
                     self.display.set_range(.., true);
                 }
                 Instruction::i1NNN(address) => self.ip = address as usize,
-                Instruction::iANNN(address) => {
-                    self.i = address;
-                    console_log!("Set i to address {}", self.i);
-                }
+                Instruction::iANNN(address) => self.i = address,
                 Instruction::iBNNN(address) => {
-                    let reg_v0 = self.registers[0];
+                    let reg_v0 = self.registers[REG_V0];
                     self.ip = (address + (reg_v0 as u16)) as usize;
                 }
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
@@ -162,32 +174,48 @@ impl Cpu {
                     let current_col = (reg_v1 as u8) & ((self.width - 1) as u8);
                     let base_sprite_addr: usize = self.i.into();
 
-                    console_log!("Base Sprite Addr: {}", self.i);
+                    // set if a pixel is cleared from 1 to 0
+                    let mut pixel_was_unset = false;
 
                     // this loop handles the sprite accesses from memory
                     for offset in 0..num_rows {
                         let sprite_byte = self.memory[base_sprite_addr + (offset as usize)];
 
-                        console_log!("Sprite Byte {} = {}", offset, sprite_byte);
                         // this loop loops through bits in byte of sprite
                         for bit in 0..BITS_IN_BYTE {
                             // TODO Need to check for wrapping around side of display
-                            let index = self.get_index(current_row, current_col + bit);
+                            let index = self.get_index(
+                                current_row.into(),
+                                ((current_col + bit) & ((self.width - 1) as u8)).into(),
+                            );
                             let current_pixel = self.display[index];
 
                             // First & is mask, then shift over to first bit position
                             let mask: u8 = 0x80 >> bit;
-                            let shift_amt = 0x07 - bit;
-                            let current_pixel_bit_is_set = ((sprite_byte & mask) >> shift_amt) == 1;
+                            let shift_amt = 7 - bit;
+                            let current_sprite_pixel_bit_is_set =
+                                ((sprite_byte & mask) >> shift_amt) == 1;
 
-                            // TODO need to check and set register VF
-                            let xored_pixel = current_pixel ^ current_pixel_bit_is_set;
+                            // XOR display pixel with the sprite pixel
+                            let new_pixel_value = current_pixel ^ current_sprite_pixel_bit_is_set;
 
-                            console_log!("New Pixel Value: {}", xored_pixel);
-                            self.display.set(index, xored_pixel);
+                            if current_pixel && !new_pixel_value {
+                                pixel_was_unset = true;
+                            }
+
+                            console_log!(
+                                "Setting ({},{})@index({}) to : {}",
+                                (current_row),
+                                (current_col + bit),
+                                index,
+                                new_pixel_value
+                            );
+                            self.display.set(index, new_pixel_value);
                         }
-                        current_row += 1;
+                        current_row = (current_row + 1) & ((self.height - 1) as u8);
                     }
+                    // set VF to 0 unless any pixel is cleared
+                    self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
                 }
                 _ => panic!("Instruction not yet implemented"),
             }
@@ -240,8 +268,6 @@ impl Cpu {
         let nibble_3: u16 = (((byte_2) & 0xF0) >> 4).into();
         let nibble_4: u16 = ((byte_2) & 0x0F).into();
 
-        //let whole_instruction_from_bytes = ((byte_1 as u16) << 8) | (byte_2 as u16);
-
         match (nibble_1, nibble_2, nibble_3, nibble_4) {
             (0x0, _, 0xE, 0x0) => Some(Instruction::i00E0),
             (0x0, _, 0xE, 0x1) => Some(Instruction::i00E1),
@@ -281,15 +307,6 @@ impl Cpu {
                 Some(Instruction::iDXYN(register_1, register_2, data))
             }
             _ => None,
-            //_ => panic!(
-            //    "Unimplemented instruction [{},{},{},{}]\nIP: {}\nMemory: {:?}",
-            //    nibble_1,
-            //    nibble_2,
-            //    nibble_3,
-            //    nibble_4,
-            //    self.ip,
-            //    &self.memory[0x200..0x210],
-            //),
         }
     }
 }
@@ -307,10 +324,10 @@ impl std::fmt::Display for Cpu {
                 let index = row * self.width + col;
                 if self.display[index] {
                     //write!(f, "🦑")?;
-                    write!(f, "1")?;
+                    write!(f, "{}", self.pixel_on)?;
                 } else {
                     //write!(f, "🐙")?;
-                    write!(f, "0")?;
+                    write!(f, "{}", self.pixel_off)?;
                 }
             }
             writeln!(f)?;
@@ -323,12 +340,6 @@ impl std::fmt::Display for Cpu {
 #[wasm_bindgen_test]
 fn test_basic_display_commands() {
     let mut cpu = Cpu::new();
-    //    cpu.memory = vec![
-    //        Instruction::i00E0,
-    //        Instruction::i6XNN(Register::V0, 0),
-    //        Instruction::i6XNN(Register::V1, 0),
-    //        Instruction::iDXYN(Register::V0, Register::V1, 1),
-    //    ];
     let mut instructions = [0; 4096];
     instructions[0x200] = 0x00;
     instructions[0x201] = 0xE0;
