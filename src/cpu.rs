@@ -356,3 +356,12 @@ fn test_basic_display_commands() {
 
     assert_eq!(cpu.display.count_ones(..), 1);
 }
+
+#[wasm_bindgen_test]
+fn test_draw_numbers() {
+    let mut cpu = Cpu::new();
+    cpu.load_instructions();
+    cpu.tick();
+
+    assert_eq!(cpu.display.count_ones(..), 1);
+}

@@ -13,7 +13,7 @@ fileInputElement.addEventListener('change', async (event) => {
   const buffer = await file.arrayBuffer();
   const byteArray = new Uint8Array(buffer);
 
-    console.log(byteArray)
+  console.log(byteArray);
 });
 
 const renderLoop = () => {

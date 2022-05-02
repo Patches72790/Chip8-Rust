@@ -2,7 +2,7 @@
   "name": "create-wasm-app",
   "version": "0.1.0",
   "description": "A Chip8 emulator written in Rust, Web Assembly, and JavaScript!",
-  "main": "index.js",
+  "main": "src/index.js",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
