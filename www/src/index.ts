@@ -8,19 +8,24 @@ const instructions = cpu.disassemble();
 disassembleInstructions(instructions);
 
 const fileInputElement = document.getElementById('file-input');
-fileInputElement.addEventListener('change', async (event) => {
-  const file = event.target.files.item(0);
-  const buffer = await file.arrayBuffer();
+fileInputElement?.addEventListener('change', async (event) => {
+  const files = (<HTMLInputElement>event.target).files;
+  if (!files) {
+    throw Error("Error getting file input")
+  }
+  const buffer = await files[0].arrayBuffer();
   const byteArray = new Uint8Array(buffer);
 
   console.log(byteArray);
 });
 
 const renderLoop = () => {
+    if (container) {
   container.textContent = cpu.render();
   cpu.tick();
 
   requestAnimationFrame(renderLoop);
+    }
 };
 
 requestAnimationFrame(renderLoop);
