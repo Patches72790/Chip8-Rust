@@ -7,7 +7,7 @@
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
-    "build": "wasm-pack build",
+    "build": "wasm-pack build && tsc",
     "start": "webpack-dev-server",
     "start2": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server"
   },
@@ -31,12 +31,13 @@
     "chip8-emulator": "../pkg"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.21.0",
-    "@typescript-eslint/parser": "^5.21.0",
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/parser": "^5.22.0",
     "copy-webpack-plugin": "^5.0.0",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint": "^8.14.0",
     "eslint-plugin-prettier": "^4.0.0",
     "hello-wasm-pack": "^0.1.0",
+    "typescript": "^4.6.4",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.5"

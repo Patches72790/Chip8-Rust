@@ -50,6 +50,14 @@ impl Cpu {
         }
     }
 
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
     /// Initialize memory with sprite fonts and
     /// any other possibilities. The font data is stored
     /// from 0x050 - 0x09F in memory before the code instructions
@@ -124,6 +132,7 @@ impl Cpu {
     /// The main public API representing a singular cpu "cycle"
     /// This should be used each iteration of the main rendering loop.
     pub fn tick(&mut self) {
+        console_log!("Cpu tick");
         self.interpret();
         self.clock += 1;
     }
