@@ -36,34 +36,24 @@ pub fn run_chip8() -> Result<(), JsValue> {
 fn draw_pixels(cpu: &Cpu, context: &CanvasRenderingContext2d) {
     context.begin_path();
 
-    console_log!("Drawing pixels");
-    context.fill_rect(
-        0.0,
-        0.0,
-        (cpu.width() * (PIXEL_SIZE + 1) + 100) as f64,
-        (cpu.height() * (PIXEL_SIZE + 1) + 1) as f64,
-    );
+    context.set_stroke_style(&JsValue::from_str(PIXEL_OFF_COLOR));
 
-    /*
-        context.set_stroke_style(&JsValue::from_str(PIXEL_OFF_COLOR));
-
-        // vertical lines
-        for i in 0..cpu.width() {
-            context.move_to((i * (PIXEL_SIZE + 1) + 1) as f64, 0.0);
-            context.line_to(
-                (i * (PIXEL_SIZE + 1) + 1) as f64,
-                ((PIXEL_SIZE + 1) * cpu.height() + 1) as f64,
-            );
-        }
-        // horizontal lines
-        for i in 0..cpu.height() {
-            context.move_to(0.0, (i * (PIXEL_SIZE + 1) + 1) as f64);
-            context.line_to(
-                ((PIXEL_SIZE + 1) * cpu.width() + 1) as f64,
-                (i * (PIXEL_SIZE + 1) + 1) as f64,
-            );
-        }
-    */
+    // vertical lines
+    for i in 0..cpu.width() {
+        context.move_to((i * (PIXEL_SIZE + 1) + 1) as f64, 0.0);
+        context.line_to(
+            (i * (PIXEL_SIZE + 1) + 1) as f64,
+            ((PIXEL_SIZE + 1) * cpu.height() + 1) as f64,
+        );
+    }
+    // horizontal lines
+    for i in 0..cpu.height() {
+        context.move_to(0.0, (i * (PIXEL_SIZE + 1) + 1) as f64);
+        context.line_to(
+            ((PIXEL_SIZE + 1) * cpu.width() + 1) as f64,
+            (i * (PIXEL_SIZE + 1) + 1) as f64,
+        );
+    }
     context.stroke();
 }
 
