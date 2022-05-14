@@ -14,7 +14,10 @@ pub struct Cpu {
     // 12 KB of memory, instructions starting at 0x200
     memory: [u8; 4096],
     registers: [RegData; 16],
+    stack: [Address; 16],
     clock: u128,
+    delay_timer: u8,
+    sound_timer: u8,
     display: FixedBitSet, // display fixed at 64 * 32 pixels
     ip: usize,            // instruction pointer
     i: Address,           // special memory pointer I
@@ -39,6 +42,9 @@ impl Cpu {
         Cpu {
             memory: Cpu::initialize_memory(),
             registers: [0u8; 16],
+            stack: [0u16; 16],
+            delay_timer: 0,
+            sound_timer: 0,
             i: 0,
             clock: 0,
             display,
@@ -58,9 +64,8 @@ impl Cpu {
         self.height
     }
 
-    pub fn display(&self) -> Vec<u32> {
-        let display_array = self.display.as_slice().to_vec();
-        display_array
+    pub fn display(&self) -> *const u32 {
+        self.display.as_slice().as_ptr()
     }
 
     /// Initialize memory with sprite fonts and
@@ -90,12 +95,96 @@ impl Cpu {
         memory[0x05d] = 0x80;
         memory[0x05e] = 0xF0;
 
-        // todo 3..F
+        // 3
         memory[0x05f] = 0xF0;
         memory[0x060] = 0x10;
         memory[0x061] = 0xF0;
         memory[0x062] = 0x10;
         memory[0x063] = 0xF0;
+
+        // 4
+        memory[0x064] = 0x90;
+        memory[0x065] = 0x90;
+        memory[0x066] = 0xF0;
+        memory[0x067] = 0x10;
+        memory[0x068] = 0x10;
+
+        // 5
+        memory[0x069] = 0xF0;
+        memory[0x06a] = 0x80;
+        memory[0x06b] = 0xF0;
+        memory[0x06c] = 0x10;
+        memory[0x06d] = 0xf0;
+
+        // 6
+        memory[0x06e] = 0xF0;
+        memory[0x06f] = 0x80;
+        memory[0x070] = 0xF0;
+        memory[0x071] = 0x90;
+        memory[0x072] = 0xf0;
+
+        // 7
+        memory[0x073] = 0xF0;
+        memory[0x074] = 0x10;
+        memory[0x075] = 0x20;
+        memory[0x076] = 0x40;
+        memory[0x077] = 0x40;
+
+        // 8
+        memory[0x078] = 0xF0;
+        memory[0x079] = 0x90;
+        memory[0x07a] = 0xf0;
+        memory[0x07b] = 0x90;
+        memory[0x07c] = 0xf0;
+
+        // 9
+        memory[0x07d] = 0xF0;
+        memory[0x07e] = 0x90;
+        memory[0x07f] = 0xF0;
+        memory[0x080] = 0x10;
+        memory[0x081] = 0xF0;
+
+        // A
+        memory[0x082] = 0xF0;
+        memory[0x083] = 0x90;
+        memory[0x084] = 0xF0;
+        memory[0x085] = 0x90;
+        memory[0x086] = 0x90;
+
+        // B
+        memory[0x087] = 0xE0;
+        memory[0x088] = 0x90;
+        memory[0x089] = 0xE0;
+        memory[0x08a] = 0x90;
+        memory[0x08b] = 0xE0;
+
+        // C
+        memory[0x08c] = 0xF0;
+        memory[0x08d] = 0x80;
+        memory[0x08e] = 0x80;
+        memory[0x08f] = 0x80;
+        memory[0x090] = 0xF0;
+
+        // D
+        memory[0x091] = 0xE0;
+        memory[0x092] = 0x90;
+        memory[0x093] = 0x90;
+        memory[0x094] = 0x90;
+        memory[0x095] = 0xE0;
+
+        // E
+        memory[0x096] = 0xF0;
+        memory[0x097] = 0x80;
+        memory[0x098] = 0xF0;
+        memory[0x099] = 0x80;
+        memory[0x09a] = 0xF0;
+
+        // F
+        memory[0x09b] = 0xF0;
+        memory[0x09c] = 0x80;
+        memory[0x09d] = 0xF0;
+        memory[0x09e] = 0x80;
+        memory[0x09f] = 0x80;
 
         memory
     }
@@ -163,11 +252,6 @@ impl Cpu {
     fn interpret(&mut self) {
         let mut instruction_count = 0;
         while let Some(instruction) = self.fetch_instruction() {
-            // only run set instructions per tick of CPU
-            if instruction_count >= INSTRUCTIONS_PER_CYCLE {
-                break;
-            }
-            instruction_count += 1;
             match instruction {
                 Instruction::i00E0 => self.display.clear(),
                 Instruction::i00E1 => {
@@ -233,6 +317,11 @@ impl Cpu {
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
                 }
                 _ => panic!("Instruction not yet implemented"),
+            }
+            // only run set instructions per tick of CPU
+            instruction_count += 1;
+            if instruction_count >= INSTRUCTIONS_PER_CYCLE {
+                break;
             }
         }
     }

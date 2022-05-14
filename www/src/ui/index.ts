@@ -1,30 +1,45 @@
 import { Cpu } from "chip8-emulator";
 import disassembleInstructions from "../helpers/disassembly";
+import { memory } from "chip8-emulator/chip8_rust_bg.wasm";
 
-const PIXEL_SIZE = 5;
+const PIXEL_SIZE = 10;
+const PIXEL_PADDING = 0;
 const PIXEL_ON_COLOR = "#FFFFFF";
 const PIXEL_OFF_COLOR = "#000000";
 
-const drawPixels = (
+const drawDisplay = (
   context: CanvasRenderingContext2D,
-  display: Uint32Array,
+  display_ptr: number,
   width: number,
   height: number
 ) => {
-    console.log(display);
+  const display = new Uint8Array(
+    memory.buffer,
+    display_ptr,
+    (width * height) / 8
+  );
+
+  const getIndex = (x: number, y: number) => x * width + y;
+
+  const pixelIsSet = (idx: number) => {
+    const mask = 1 << (idx & 7); // equivalent to mod 8
+    return (display[Math.floor(idx / 8)] & mask) === mask;
+  };
+
   context.beginPath();
-  context.strokeStyle = PIXEL_OFF_COLOR;
+  for (let i = 0; i < height; i++) {
+    for (let j = 0; j < width; j++) {
+      const idx = getIndex(i, j);
+      context.fillStyle = pixelIsSet(idx) ? PIXEL_ON_COLOR : PIXEL_OFF_COLOR;
 
-  for (let i = 0; i < width; i++) {
-    context.moveTo(i * (PIXEL_SIZE + 1) + 1, 0);
-    context.lineTo(i * (PIXEL_SIZE + 1) + 1, (PIXEL_SIZE + 1) * height + 1);
+      context.fillRect(
+        j * (PIXEL_SIZE + PIXEL_PADDING),
+        i * (PIXEL_SIZE + PIXEL_PADDING),
+        PIXEL_SIZE,
+        PIXEL_SIZE
+      );
+    }
   }
-
-  for (let j = 0; j < height; j++) {
-    context.moveTo(0, j * (PIXEL_SIZE + 1) + 1);
-    context.lineTo((PIXEL_SIZE + 1) * width + 1, j * (PIXEL_SIZE + 1) + 1);
-  }
-
   context.stroke();
 };
 
@@ -38,8 +53,8 @@ const runChip8 = () => {
   cpu.load_instructions();
   disassembleInstructions(cpu.disassemble());
 
-  canvas.height = cpu.height() * (PIXEL_SIZE + 1) + 1;
-  canvas.width = cpu.width() * (PIXEL_SIZE + 1) + 1;
+  canvas.height = cpu.height() * (PIXEL_SIZE + PIXEL_PADDING);
+  canvas.width = cpu.width() * (PIXEL_SIZE + PIXEL_PADDING);
 
   const context = canvas.getContext("2d");
   if (!context) {
@@ -47,7 +62,9 @@ const runChip8 = () => {
   }
 
   const renderLoop = () => {
-    drawPixels(context, cpu.display(), cpu.width(), cpu.height());
+    //drawPixels(context, cpu.display(), cpu.width(), cpu.height());
+    //drawScreenBackground(context, cpu.width(), cpu.height());
+    drawDisplay(context, cpu.display(), cpu.width(), cpu.height());
     cpu.tick();
 
     requestAnimationFrame(renderLoop);
