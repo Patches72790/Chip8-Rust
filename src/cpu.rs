@@ -3,7 +3,7 @@ use crate::{
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
     util::set_panic_hook,
-    BITS_IN_BYTE, INSTRUCTIONS_PER_CYCLE,
+    BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE,
 };
 use fixedbitset::FixedBitSet;
 use wasm_bindgen::prelude::*;
@@ -56,6 +56,11 @@ impl Cpu {
 
     pub fn height(&self) -> usize {
         self.height
+    }
+
+    pub fn display(&self) -> Vec<u32> {
+        let display_array = self.display.as_slice().to_vec();
+        display_array
     }
 
     /// Initialize memory with sprite fonts and
@@ -132,7 +137,6 @@ impl Cpu {
     /// The main public API representing a singular cpu "cycle"
     /// This should be used each iteration of the main rendering loop.
     pub fn tick(&mut self) {
-        console_log!("Cpu tick");
         self.interpret();
         self.clock += 1;
     }
@@ -212,13 +216,15 @@ impl Cpu {
                                 pixel_was_unset = true;
                             }
 
-                            console_log!(
-                                "Setting ({},{})@index({}) to : {}",
-                                (current_row),
-                                (current_col + bit),
-                                index,
-                                new_pixel_value
-                            );
+                            if DEBUG_MODE {
+                                console_log!(
+                                    "Setting ({},{})@index({}) to : {}",
+                                    (current_row),
+                                    (current_col + bit),
+                                    index,
+                                    new_pixel_value
+                                );
+                            }
                             self.display.set(index, new_pixel_value);
                         }
                         current_row = (current_row + 1) & ((self.height - 1) as u8);

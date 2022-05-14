@@ -1,8 +1,8 @@
 mod cpu;
 mod instruction;
 mod types;
-mod util;
 mod ui;
+mod util;
 
 use wasm_bindgen::prelude::*;
 
@@ -14,4 +14,6 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub static BITS_IN_BYTE: u8 = 8;
 
 /// Variable constant for determining cycles per second (hertz)
-pub static INSTRUCTIONS_PER_CYCLE: u16 = 700;
+pub static INSTRUCTIONS_PER_CYCLE: u16 = 10;
+
+pub static DEBUG_MODE: bool= true;
