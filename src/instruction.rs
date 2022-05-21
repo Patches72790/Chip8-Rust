@@ -9,14 +9,14 @@ pub enum Instruction {
     i00E0,                              // Clears the display
     i00E1,                              // Sets all bits of display
     i1NNN(Address),                     // Jump to address NNN
+    i2NNN(Address),                     // Execute subroutine at address NNN
+    i3XNN(Register, RegData),           // Skip following instruction if VX == NN
     i6XNN(Register, RegData),           // store value NN at register X
     i7XNN(Register, RegData),           // Add data NN to register X
     iANNN(Address),                     // Store memory address NNN in Register i
     iBNNN(Address),                     // Jump to adresss NNN + V0
     iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
 }
-
-
 
 impl std::fmt::Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -31,6 +31,8 @@ impl std::fmt::Display for Instruction {
             Instruction::iDXYN(reg1, reg2, data) => {
                 write!(f, "DXYN | X={reg1} | Y={reg2} | data={data}")
             }
+            Instruction::i2NNN(addr) => write!(f, "2NNN | B={addr}"),
+            Instruction::i3XNN(reg, data) => write!(f, "3XNN | X={reg} | NN={data}"),
         }
     }
 }

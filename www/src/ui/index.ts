@@ -62,8 +62,6 @@ const runChip8 = () => {
   }
 
   const renderLoop = () => {
-    //drawPixels(context, cpu.display(), cpu.width(), cpu.height());
-    //drawScreenBackground(context, cpu.width(), cpu.height());
     drawDisplay(context, cpu.display(), cpu.width(), cpu.height());
     cpu.tick();
 

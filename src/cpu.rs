@@ -36,7 +36,7 @@ impl Cpu {
         let size = height * width;
         let mut display = FixedBitSet::with_capacity(size);
         for i in 0..(64 * 32) {
-            display.set(i, false); //i % 2 == 0);
+            display.set(i, false);
         }
 
         Cpu {
@@ -258,12 +258,24 @@ impl Cpu {
                     self.display.set_range(.., true);
                 }
                 Instruction::i1NNN(address) => self.ip = address as usize,
+                Instruction::i2NNN(address) => todo!("Haven't implemented function stack yet"),
+                Instruction::i3XNN(reg, data) => {
+                    let reg_value = self.get_from_register(reg);
+                    // skip next instruction if regX equals data
+                    if reg_value == data {
+                        self.ip += 2;
+                    }
+                }
                 Instruction::iANNN(address) => self.i = address,
                 Instruction::iBNNN(address) => {
                     let reg_v0 = self.registers[REG_V0];
                     self.ip = (address + (reg_v0 as u16)) as usize;
                 }
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
+                Instruction::i7XNN(reg, data) => {
+                    let reg_value = self.get_from_register(reg);
+                    self.store_at_register(reg, reg_value + data)
+                }
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
                     // N bytes top -> down starting with sprite data at address in reg I
@@ -315,8 +327,7 @@ impl Cpu {
                     }
                     // set VF to 0 unless any pixel is cleared
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
-                }
-                _ => panic!("Instruction not yet implemented"),
+                } //_ => panic!("Instruction not yet implemented"),
             }
             // only run set instructions per tick of CPU
             instruction_count += 1;
@@ -324,6 +335,11 @@ impl Cpu {
                 break;
             }
         }
+    }
+
+    fn get_from_register(&self, reg: Register) -> RegData {
+        let reg_idx: u16 = reg.into();
+        self.registers[reg_idx as usize]
     }
 
     fn store_at_register(&mut self, reg: Register, data: RegData) {
@@ -379,6 +395,18 @@ impl Cpu {
             (0x1, x, y, z) => {
                 let reassembled_jump_address = (x << 8) | (y << 4) | z;
                 Some(Instruction::i1NNN(reassembled_jump_address))
+            }
+            (0x2, n1, n2, n3) => {
+                let reassembled_jump_address = (n1 << 8) | (n2 << 4) | n3;
+                Some(Instruction::i2NNN(reassembled_jump_address))
+            }
+            (0x3, x, n1, n2) => {
+                let register = Register::from(x);
+                let data = (n1 << 4) | n2;
+                Some(Instruction::i3XNN(
+                    register,
+                    data.try_into().expect("Error casting u16 to u8"),
+                ))
             }
             (0x6, x, n1, n2) => {
                 let register = Register::from(x);
