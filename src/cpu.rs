@@ -14,7 +14,7 @@ pub struct Cpu {
     // 12 KB of memory, instructions starting at 0x200
     memory: [u8; 4096],
     registers: [RegData; 16],
-    stack: [Address; 16],
+    stack: [Address; 16], // stack storing return address pointers for functions
     clock: u128,
     delay_timer: u8,
     sound_timer: u8,
@@ -266,15 +266,30 @@ impl Cpu {
                         self.ip += 2;
                     }
                 }
-                Instruction::iANNN(address) => self.i = address,
-                Instruction::iBNNN(address) => {
-                    let reg_v0 = self.registers[REG_V0];
-                    self.ip = (address + (reg_v0 as u16)) as usize;
+                Instruction::i4XNN(reg, data) => {
+                    let reg_value = self.get_from_register(reg);
+                    // skip next instruction if regX does NOT equal data
+                    if reg_value != data {
+                        self.ip += 2;
+                    }
+                }
+                Instruction::i5XY0(reg_x, reg_y) => {
+                    let reg_x_value = self.get_from_register(reg_x);
+                    let reg_y_value = self.get_from_register(reg_y);
+                    // skip next instruction if reg x ==  reg y
+                    if reg_x_value == reg_y_value {
+                        self.ip += 2;
+                    }
                 }
                 Instruction::i6XNN(reg, data) => self.store_at_register(reg, data),
                 Instruction::i7XNN(reg, data) => {
                     let reg_value = self.get_from_register(reg);
-                    self.store_at_register(reg, reg_value + data)
+                    self.store_at_register(reg, reg_value.wrapping_add(data))
+                }
+                Instruction::iANNN(address) => self.i = address,
+                Instruction::iBNNN(address) => {
+                    let reg_v0 = self.registers[REG_V0];
+                    self.ip = (address + (reg_v0 as u16)) as usize;
                 }
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
@@ -408,6 +423,15 @@ impl Cpu {
                     data.try_into().expect("Error casting u16 to u8"),
                 ))
             }
+            (0x4, x, n1, n2) => {
+                let register = Register::from(x);
+                let data = (n1 << 4) | n2;
+                Some(Instruction::i4XNN(
+                    register,
+                    data.try_into().expect("Error casting u16 to u8"),
+                ))
+            }
+            (0x5, x, y, _) => Some(Instruction::i5XY0(Register::from(x), Register::from(y))),
             (0x6, x, n1, n2) => {
                 let register = Register::from(x);
                 let reg_data: u8 = ((n1 << 4) | n2)
@@ -486,7 +510,7 @@ fn test_basic_display_commands() {
 
     cpu.tick();
 
-    assert_eq!(cpu.display.count_ones(..), 1);
+    assert_eq!(cpu.display.count_ones(..), 0);
 }
 
 #[wasm_bindgen_test]
@@ -495,5 +519,27 @@ fn test_draw_numbers() {
     cpu.load_instructions();
     cpu.tick();
 
-    assert_eq!(cpu.display.count_ones(..), 1);
+    assert_eq!(cpu.display.count_ones(..), 22);
+}
+
+#[wasm_bindgen_test]
+fn test_register_instructions() {
+    let mut cpu = Cpu::new();
+    let mut instructions = [0; 4096];
+
+    instructions[0x200] = 0x00; // clear the screen
+    instructions[0x201] = 0xE0;
+    instructions[0x202] = 0x60; // store 255 in register 0
+    instructions[0x203] = 0xFF;
+    instructions[0x204] = 0x70; // add 1 to register 0
+    instructions[0x205] = 0x01;
+    instructions[0x206] = 0x30; // skip next instruction if reg 0 == 0
+    instructions[0x207] = 0x00;
+    instructions[0x208] = 0x70; // will be skipped -- adds 17 to register 0
+    instructions[0x209] = 0x11;
+
+    cpu.memory = instructions;
+    cpu.tick();
+
+    assert_eq!(cpu.registers[0], 0);
 }
