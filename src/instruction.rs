@@ -15,6 +15,15 @@ pub enum Instruction {
     i5XY0(Register, Register),          // Skip following instruction if VX == VY
     i6XNN(Register, RegData),           // store value NN at register X
     i7XNN(Register, RegData),           // Add data NN to register X
+    i8XY0(Register, Register),          // VX = *VY
+    i8XY1(Register, Register),          // VX = VX | VY
+    i8XY2(Register, Register),          // VX = VX & VY
+    i8XY3(Register, Register),          // VX = VX ^ VY
+    i8XY4(Register, Register),          // VX = VX + VY -> VF = 1 if carry, 0 otherwise
+    i8XY5(Register, Register),          // VX = VX - VY -> VF = 1 if carry, 0 otherwise
+    i8XY6(Register, Register),          // VX = VY >> 1 -> VF = LSB of VY before shift
+    i8XY7(Register, Register),          // VX = VY - VX -> CAREFUL !!! VF = 0 if carry, 1 otherwise
+    i8XYE(Register, Register),          // VX = VY << 1 -> VF = MSB of VY before shift
     iANNN(Address),                     // Store memory address NNN in Register i
     iBNNN(Address),                     // Jump to adresss NNN + V0
     iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
@@ -37,6 +46,7 @@ impl std::fmt::Display for Instruction {
             Instruction::iDXYN(reg1, reg2, data) => {
                 write!(f, "DXYN | X={reg1} | Y={reg2} | data={data}")
             }
+            _ => write!(f, "Unimplemented Instruction"),
         }
     }
 }
