@@ -286,6 +286,32 @@ impl Cpu {
                     let reg_value = self.get_from_register(reg);
                     self.store_at_register(reg, reg_value.wrapping_add(data))
                 }
+                Instruction::i8XY0(reg1, reg2) => {
+                    self.store_at_register(reg1, self.get_from_register(reg2))
+                }
+                Instruction::i8XY1(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+                    self.store_at_register(reg1, x_value | y_value)
+                }
+                Instruction::i8XY2(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+                    self.store_at_register(reg1, x_value & y_value)
+                }
+                Instruction::i8XY3(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+                    self.store_at_register(reg1, x_value ^ y_value)
+                }
+                Instruction::i8XY4(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+                }
+                Instruction::i8XY5(reg1, reg2) => todo!(),
+                Instruction::i8XY6(reg1, reg2) => todo!(),
+                Instruction::i8XY7(reg1, reg2) => todo!(),
+                Instruction::i8XYE(reg1, reg2) => todo!(),
                 Instruction::iANNN(address) => self.i = address,
                 Instruction::iBNNN(address) => {
                     let reg_v0 = self.registers[REG_V0];
@@ -342,7 +368,8 @@ impl Cpu {
                     }
                     // set VF to 0 unless any pixel is cleared
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
-                } //_ => panic!("Instruction not yet implemented"),
+                }
+                _ => todo!("Instruction not yet implemented"),
             }
             // only run set instructions per tick of CPU
             instruction_count += 1;
@@ -445,6 +472,51 @@ impl Cpu {
                     .try_into()
                     .expect("Error casting u16 to u8 in decoder for i6XNN");
                 Some(Instruction::i7XNN(register, reg_data))
+            }
+            (0x8, x, y, 0) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 1) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 2) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 3) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 4) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 5) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 6) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 7) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
+            }
+            (0x8, x, y, 0xe) => {
+                let register1 = Register::from(x);
+                let register2 = Register::from(y);
+                Some(Instruction::i8XY0(register1, register2))
             }
             (0xA, x, y, z) => {
                 let reassembled_jump_address = (x << 8) | (y << 4) | z;

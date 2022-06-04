@@ -24,9 +24,22 @@ pub enum Instruction {
     i8XY6(Register, Register),          // VX = VY >> 1 -> VF = LSB of VY before shift
     i8XY7(Register, Register),          // VX = VY - VX -> CAREFUL !!! VF = 0 if carry, 1 otherwise
     i8XYE(Register, Register),          // VX = VY << 1 -> VF = MSB of VY before shift
+    i9XY0(Register, Register),          // TODO
     iANNN(Address),                     // Store memory address NNN in Register i
     iBNNN(Address),                     // Jump to adresss NNN + V0
+    iCXNN(Register, Address),           // TODO
     iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
+    iEX9E(Register),                    // TODO
+    iEXA1(Register),                    // TODO
+    iFX07(Register),                    // TODO
+    iFX0A(Register),                    // TODO
+    iFX15(Register),                    // TODO
+    iFX18(Register),                    // TODO
+    iFX1E(Register),                    // TODO
+    iFX29(Register),                    // TODO
+    iFX33(Register),                    // TODO
+    iFX55(Register),                    // TODO
+    iFX65(Register),                    // TODO
 }
 
 impl std::fmt::Display for Instruction {
@@ -41,12 +54,21 @@ impl std::fmt::Display for Instruction {
             Instruction::i5XY0(reg1, reg2) => write!(f, "5XY0 | X={reg1} | Y={reg2}"),
             Instruction::i6XNN(reg, data) => write!(f, "6XNN | X={reg} | NN={data}"),
             Instruction::i7XNN(reg, data) => write!(f, "7XNN | X={reg} | NN={data}"),
+            Instruction::i8XY0(reg1, reg2) => write!(f, "8XY0 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY1(reg1, reg2) => write!(f, "8XY1 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY2(reg1, reg2) => write!(f, "8XY2 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY3(reg1, reg2) => write!(f, "8XY3 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY4(reg1, reg2) => write!(f, "8XY4 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY5(reg1, reg2) => write!(f, "8XY5 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY6(reg1, reg2) => write!(f, "8XY6 | X={reg1} | Y={reg2}"),
+            Instruction::i8XY7(reg1, reg2) => write!(f, "8XY7 | X={reg1} | Y={reg2}"),
+            Instruction::i8XYE(reg1, reg2) => write!(f, "8XYE | X={reg1} | Y={reg2}"),
             Instruction::iANNN(addr) => write!(f, "ANNN | NNN={addr}"),
             Instruction::iBNNN(addr) => write!(f, "BNNN | B={addr}"),
             Instruction::iDXYN(reg1, reg2, data) => {
                 write!(f, "DXYN | X={reg1} | Y={reg2} | data={data}")
             }
-            _ => write!(f, "Unimplemented Instruction"),
+            _ => todo!("Unimplemented instruction"),
         }
     }
 }
