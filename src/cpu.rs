@@ -363,9 +363,10 @@ impl Cpu {
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
                     // N bytes top -> down starting with sprite data at address in reg I
-                    let mut current_row =
-                        (self.get_from_register(reg_v0) as u8) & ((self.height - 1) as u8);
-                    let current_col = (self.get_from_register(reg_v1) as u8) & ((self.width - 1) as u8);
+                    let mut x_coord =
+                        (self.get_from_register(reg_v0) as u8) & ((self.width - 1) as u8);
+                    let mut y_coord =
+                        (self.get_from_register(reg_v1) as u8) & ((self.height - 1) as u8);
                     let base_sprite_addr: usize = self.i.into();
 
                     // set if a pixel is cleared from 1 to 0
@@ -378,10 +379,7 @@ impl Cpu {
                         // this loop loops through bits in byte of sprite
                         for bit in 0..BITS_IN_BYTE {
                             // TODO Need to check for wrapping around side of display
-                            let index = self.get_index(
-                                current_row.into(),
-                                ((current_col + bit) & ((self.width - 1) as u8)).into(),
-                            );
+                            let index = self.get_index(y_coord.into(), (x_coord + bit).into());
                             let current_pixel = self.display[index];
 
                             // First & is mask, then shift over to first bit position
@@ -400,15 +398,15 @@ impl Cpu {
                             if DEBUG_MODE {
                                 console_log!(
                                     "Setting ({},{})@index({}) to : {}",
-                                    (current_row),
-                                    (current_col + bit),
+                                    (x_coord),
+                                    (y_coord),
                                     index,
                                     new_pixel_value
                                 );
                             }
                             self.display.set(index, new_pixel_value);
                         }
-                        current_row = (current_row + 1) & ((self.height - 1) as u8);
+                        y_coord = (y_coord + 1) & ((self.height - 1) as u8);
                     }
                     // set VF to 0 unless any pixel is cleared
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
