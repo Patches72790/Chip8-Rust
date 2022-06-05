@@ -35,7 +35,7 @@ pub enum Instruction {
     iFX0A(Register),                    // TODO
     iFX15(Register),                    // TODO
     iFX18(Register),                    // TODO
-    iFX1E(Register),                    // TODO
+    iFX1E(Register),                    // I += Reg[VX]
     iFX29(Register),                    // TODO
     iFX33(Register),                    // TODO
     iFX55(Register),                    // TODO
@@ -68,6 +68,7 @@ impl std::fmt::Display for Instruction {
             Instruction::iDXYN(reg1, reg2, data) => {
                 write!(f, "DXYN | X={reg1} | Y={reg2} | data={data}")
             }
+            Instruction::iFX1E(reg) => write!(f, "FX1E | X={reg}"),
             _ => todo!("Unimplemented instruction"),
         }
     }

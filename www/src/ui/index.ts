@@ -49,7 +49,6 @@ const runChip8 = (cpu: Cpu) => {
     throw Error("Error finding canvas element");
   }
 
-  //cpu.load_instructions();
   disassembleInstructions(cpu.disassemble());
 
   canvas.height = cpu.height() * (PIXEL_SIZE + PIXEL_PADDING);

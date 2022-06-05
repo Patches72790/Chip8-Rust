@@ -93,4 +93,5 @@ impl std::fmt::Display for Register {
 }
 
 pub const REG_V0: usize = 0x0;
+pub const REG_V1: usize = 0x1;
 pub const REG_VF: usize = 0xf;

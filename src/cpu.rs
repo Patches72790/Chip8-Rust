@@ -1,7 +1,7 @@
 use crate::{
     instruction::Instruction,
     types::{Address, RegData, Register},
-    types::{REG_V0, REG_VF},
+    types::{REG_V0, REG_V1, REG_VF},
     util::set_panic_hook,
     BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE,
 };
@@ -193,17 +193,35 @@ impl Cpu {
     /// FOR NOW JUST USING FOR TESTING INSTRUCTIONS IN MEMORY
     pub fn load_instructions(&mut self) {
         let mut instructions = self.memory;
-        // draw sprite 0 at (0, 0)
-        instructions[0x200] = 0xA0;
-        instructions[0x201] = 0x50;
-        instructions[0x202] = 0xD0;
-        instructions[0x203] = 0x05;
+        // clear screen
+        instructions[0x200] = 0x00;
+        instructions[0x201] = 0xE0;
 
-        // draw sprite 1 at (0, 5)
-        instructions[0x204] = 0xA0;
-        instructions[0x205] = 0x55;
-        instructions[0x206] = 0xD0;
-        instructions[0x207] = 0x55;
+        // set I register
+        instructions[0x202] = 0xA0;
+        instructions[0x203] = 0x50;
+
+        // set registers 0 and 1 to (0, 0)
+        instructions[0x204] = 0x60;
+        instructions[0x205] = 0x00;
+        instructions[0x206] = 0x61;
+        instructions[0x207] = 0x00;
+
+        // draw sprite 0 at (0, 0)
+        instructions[0x208] = 0xD0;
+        instructions[0x209] = 0x15;
+
+        // increment x register by 6
+        instructions[0x20a] = 0x70;
+        instructions[0x20b] = 0x06;
+
+        // increment i register to next sprite
+        instructions[0x20c] = 0xA0;
+        instructions[0x20d] = 0x55;
+
+        // draw sprite 0 at (6, 0)
+        instructions[0x20e] = 0xD0;
+        instructions[0x20f] = 0x15;
 
         self.memory = instructions;
     }
@@ -327,7 +345,6 @@ impl Cpu {
                     self.store_at_register(reg1, new_val)
                 }
                 Instruction::i8XY6(reg1, reg2) => {
-                    let x_value = self.get_from_register(reg1);
                     let y_value = self.get_from_register(reg2);
 
                     let lsb = y_value & 0x01;
@@ -348,7 +365,6 @@ impl Cpu {
                     self.store_at_register(reg1, new_val)
                 }
                 Instruction::i8XYE(reg1, reg2) => {
-                    let x_value = self.get_from_register(reg1);
                     let y_value = self.get_from_register(reg2);
 
                     let msb = (y_value & 0x80) >> 7;

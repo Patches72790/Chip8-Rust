@@ -9,7 +9,8 @@
   "scripts": {
     "build": "wasm-pack build && tsc",
     "start": "webpack-dev-server",
-    "start2": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server"
+    "start2": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server",
+    "go": "npm run build && npm run start2"
   },
   "repository": {
     "type": "git",
