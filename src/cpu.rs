@@ -363,8 +363,7 @@ impl Cpu {
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
                     // N bytes top -> down starting with sprite data at address in reg I
-                    let mut x_coord =
-                        (self.get_from_register(reg_v0) as u8) & ((self.width - 1) as u8);
+                    let x_coord = (self.get_from_register(reg_v0) as u8) & ((self.width - 1) as u8);
                     let mut y_coord =
                         (self.get_from_register(reg_v1) as u8) & ((self.height - 1) as u8);
                     let base_sprite_addr: usize = self.i.into();
@@ -378,7 +377,7 @@ impl Cpu {
 
                         // this loop loops through bits in byte of sprite
                         for bit in 0..BITS_IN_BYTE {
-                            // TODO Need to check for wrapping around side of display
+                            // TODO Need to check for wrapping around side of display or stop
                             let index = self.get_index(y_coord.into(), (x_coord + bit).into());
                             let current_pixel = self.display[index];
 
@@ -406,6 +405,7 @@ impl Cpu {
                             }
                             self.display.set(index, new_pixel_value);
                         }
+                        // TODO Currently wraps around screen -- should this just stop if overflow?
                         y_coord = (y_coord + 1) & ((self.height - 1) as u8);
                     }
                     // set VF to 0 unless any pixel is cleared
