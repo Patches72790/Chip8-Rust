@@ -427,6 +427,11 @@ impl Cpu {
                     // set VF to 0 unless any pixel is cleared
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
                 }
+                Instruction::iFX1E(reg) => {
+                    let reg_x_val = self.get_from_register(reg);
+
+                    self.i += reg_x_val as u16;
+                }
                 _ => todo!("Instruction not yet implemented"),
             }
             // only run set instructions per tick of CPU
@@ -592,6 +597,7 @@ impl Cpu {
                     .expect("Error casting u16 to u8 in decoder for iDXYN");
                 Some(Instruction::iDXYN(register_1, register_2, data))
             }
+            (0xF, reg, 0x1, 0xe) => Some(Instruction::iFX1E(Register::from(reg))),
             _ => None,
         }
     }

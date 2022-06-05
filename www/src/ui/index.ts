@@ -2,7 +2,7 @@ import { Cpu } from "chip8-emulator";
 import disassembleInstructions from "../helpers/disassembly";
 import { memory } from "chip8-emulator/chip8_rust_bg.wasm";
 
-const PIXEL_SIZE = 10;
+const PIXEL_SIZE = 15;
 const PIXEL_PADDING = 0;
 const PIXEL_ON_COLOR = "#FFFFFF";
 const PIXEL_OFF_COLOR = "#000000";
