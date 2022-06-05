@@ -213,10 +213,16 @@ impl Cpu {
     /// rules in rust, so it is not allowed.
     /// How else could I setup instructions to be loaded at runtime
     /// without giving access to the global cpu in the JS code?
-    pub fn load_instructions_from_file(&self, bytes_array: js_sys::Uint8Array) {
-        let mut bytes_slice = vec![];
-        bytes_array.copy_to(&mut bytes_slice);
-        console_log!("Bytes array contents:\n{:?}", bytes_slice);
+    pub fn load_instructions_from_file(&mut self, bytes_array: js_sys::Uint8Array) {
+        let instructions_vec = bytes_array.to_vec();
+
+        let mut new_memory = Cpu::initialize_memory();
+        let base_addr = 0x200;
+        for (i, instruction) in instructions_vec.iter().enumerate() {
+            new_memory[base_addr + i] = *instruction;
+        }
+
+        self.memory = new_memory;
     }
 
     pub fn render(&self) -> String {
@@ -308,10 +314,47 @@ impl Cpu {
                     let x_value = self.get_from_register(reg1);
                     let y_value = self.get_from_register(reg2);
                 }
-                Instruction::i8XY5(reg1, reg2) => todo!(),
-                Instruction::i8XY6(reg1, reg2) => todo!(),
-                Instruction::i8XY7(reg1, reg2) => todo!(),
-                Instruction::i8XYE(reg1, reg2) => todo!(),
+                Instruction::i8XY5(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+
+                    let (new_val, did_overflow) = x_value.overflowing_sub(y_value);
+                    if did_overflow {
+                        self.registers[0xf] = 1;
+                    } else {
+                        self.registers[0xf] = 0;
+                    }
+                    self.store_at_register(reg1, new_val)
+                }
+                Instruction::i8XY6(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+
+                    let lsb = y_value & 0x01;
+                    self.registers[0xf] = lsb;
+
+                    self.store_at_register(reg1, y_value >> 1)
+                }
+                Instruction::i8XY7(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+
+                    let (new_val, did_overflow) = y_value.overflowing_sub(x_value);
+                    if did_overflow {
+                        self.registers[0xf] = 0;
+                    } else {
+                        self.registers[0xf] = 1;
+                    }
+                    self.store_at_register(reg1, new_val)
+                }
+                Instruction::i8XYE(reg1, reg2) => {
+                    let x_value = self.get_from_register(reg1);
+                    let y_value = self.get_from_register(reg2);
+
+                    let msb = (y_value & 0x80) >> 7;
+                    self.registers[0xf] = msb;
+                    self.store_at_register(reg1, y_value << 1)
+                }
                 Instruction::iANNN(address) => self.i = address,
                 Instruction::iBNNN(address) => {
                     let reg_v0 = self.registers[REG_V0];
@@ -320,8 +363,9 @@ impl Cpu {
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
                     // N bytes top -> down starting with sprite data at address in reg I
-                    let mut current_row = (reg_v0 as u8) & ((self.height - 1) as u8);
-                    let current_col = (reg_v1 as u8) & ((self.width - 1) as u8);
+                    let mut current_row =
+                        (self.get_from_register(reg_v0) as u8) & ((self.height - 1) as u8);
+                    let current_col = (self.get_from_register(reg_v1) as u8) & ((self.width - 1) as u8);
                     let base_sprite_addr: usize = self.i.into();
 
                     // set if a pixel is cleared from 1 to 0

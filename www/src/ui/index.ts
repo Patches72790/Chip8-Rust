@@ -43,14 +43,13 @@ const drawDisplay = (
   context.stroke();
 };
 
-const runChip8 = () => {
+const runChip8 = (cpu: Cpu) => {
   const canvas = <HTMLCanvasElement>document.getElementById("canvas");
   if (!canvas) {
     throw Error("Error finding canvas element");
   }
 
-  const cpu = Cpu.new();
-  cpu.load_instructions();
+  //cpu.load_instructions();
   disassembleInstructions(cpu.disassemble());
 
   canvas.height = cpu.height() * (PIXEL_SIZE + PIXEL_PADDING);
