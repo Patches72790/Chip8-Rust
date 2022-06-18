@@ -4,6 +4,7 @@ mod rom;
 mod types;
 mod ui;
 mod util;
+mod keyboard;
 
 use wasm_bindgen::prelude::*;
 

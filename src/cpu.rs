@@ -1,5 +1,6 @@
 use crate::{
     instruction::Instruction,
+    keyboard::Keyboard,
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
     util::set_panic_hook,
@@ -9,7 +10,6 @@ use fixedbitset::FixedBitSet;
 use js_sys::Math;
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
-use web_sys::KeyboardEvent;
 
 #[wasm_bindgen]
 pub struct Cpu {
@@ -26,6 +26,7 @@ pub struct Cpu {
     i: Address,           // special memory pointer I
     height: usize,
     width: usize,
+    keyboard: Keyboard,
     pixel_on: String,
     pixel_off: String,
 }
@@ -38,11 +39,13 @@ impl Cpu {
         let width = 64;
         let size = height * width;
         let mut display = FixedBitSet::with_capacity(size);
+
         for i in 0..(64 * 32) {
             display.set(i, false);
         }
 
-        Cpu::initialize_key_event_handler();
+        let mut keyboard = Keyboard::new();
+        keyboard.initialize_key_event_handlers();
 
         Cpu {
             memory: Cpu::initialize_memory(),
@@ -57,6 +60,7 @@ impl Cpu {
             ip: 0x200, // Code section starts at 0x200 in memory
             height,
             width,
+            keyboard,
             pixel_on: "◽".to_string(),
             pixel_off: "◾".to_string(),
         }
@@ -72,15 +76,6 @@ impl Cpu {
 
     pub fn display(&self) -> *const u32 {
         self.display.as_slice().as_ptr()
-    }
-
-    fn initialize_key_event_handler() {
-        let onkeydown_closure = Closure::wrap(
-            Box::new(|event| console_log!("keydown event")) as Box<dyn Fn(KeyboardEvent)>
-        );
-        web_sys::window()
-            .expect("Error getting window element when initializing keydown events")
-            .set_onkeydown(Some(onkeydown_closure.as_ref().unchecked_ref()));
     }
 
     /// Initialize memory with sprite fonts and
@@ -482,8 +477,23 @@ impl Cpu {
                     // set VF to 0 unless any pixel is cleared
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
                 }
-                Instruction::iEX9E(reg) => todo!(""),
-                Instruction::iEXA1(reg) => todo!(""),
+                Instruction::iEX9E(reg) => {
+                    let reg_val = self.get_from_register(reg);
+                    // Mask the 4 least significant bits only (bits 0 - F)
+                    let key_is_pressed = self.keyboard.get_key(reg_val & 0x0F);
+                    // skip next instruction if key corresponding to register value is pressed
+                    if key_is_pressed {
+                        self.ip += 2;
+                    }
+                }
+                Instruction::iEXA1(reg) => {
+                    let reg_val = self.get_from_register(reg);
+                    let key_is_pressed = self.keyboard.get_key(reg_val);
+                    // skip next instruction if key corresponding to register value is not pressed
+                    if !key_is_pressed {
+                        self.ip += 2;
+                    }
+                }
                 Instruction::iFX1E(reg) => {
                     let reg_x_val = self.get_from_register(reg);
 
@@ -497,10 +507,6 @@ impl Cpu {
                 break;
             }
         }
-    }
-
-    fn keypress() {
-        //let document = web_sys::Document::set_onkeypress
     }
 
     fn get_from_register(&self, reg: Register) -> RegData {
@@ -678,10 +684,8 @@ impl std::fmt::Display for Cpu {
             for col in 0..self.width {
                 let index = row * self.width + col;
                 if self.display[index] {
-                    //write!(f, "🦑")?;
                     write!(f, "{}", self.pixel_on)?;
                 } else {
-                    //write!(f, "🐙")?;
                     write!(f, "{}", self.pixel_off)?;
                 }
             }
