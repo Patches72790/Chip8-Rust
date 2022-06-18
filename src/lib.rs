@@ -18,3 +18,5 @@ pub static BITS_IN_BYTE: u8 = 8;
 pub static INSTRUCTIONS_PER_CYCLE: u16 = 1;
 
 pub static DEBUG_MODE: bool = true;
+
+pub const STACK_MAX_SIZE: u8 = 16;

@@ -7,6 +7,7 @@ use crate::types::{Address, RegData, Register};
 #[repr(u8)]
 pub enum Instruction {
     i00E0,                              // Clears the display
+    i00EE,                              // Return from a subroutine
     i00E1,                              // Sets all bits of display
     i1NNN(Address),                     // Jump to address NNN
     i2NNN(Address),                     // Execute subroutine at address NNN
@@ -46,6 +47,7 @@ impl std::fmt::Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Instruction::i00E0 => write!(f, "00E0"),
+            Instruction::i00EE => write!(f, "00EE"),
             Instruction::i00E1 => write!(f, "00E1"),
             Instruction::i1NNN(addr) => write!(f, "1NNN | {}", addr),
             Instruction::i2NNN(addr) => write!(f, "2NNN | B={addr}"),

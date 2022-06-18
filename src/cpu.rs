@@ -1,9 +1,9 @@
 use crate::{
     instruction::Instruction,
     types::{Address, RegData, Register},
-    types::{REG_V0, REG_V1, REG_VF},
+    types::{REG_V0, REG_VF},
     util::set_panic_hook,
-    BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE,
+    BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE, STACK_MAX_SIZE,
 };
 use fixedbitset::FixedBitSet;
 use js_sys::Math;
@@ -21,6 +21,7 @@ pub struct Cpu {
     sound_timer: u8,
     display: FixedBitSet, // display fixed at 64 * 32 pixels
     ip: usize,            // instruction pointer
+    sp: usize,            // stack pointer denoting current top of stack
     i: Address,           // special memory pointer I
     height: usize,
     width: usize,
@@ -44,6 +45,7 @@ impl Cpu {
             memory: Cpu::initialize_memory(),
             registers: [0u8; 16],
             stack: [0u16; 16],
+            sp: 0,
             delay_timer: 0,
             sound_timer: 0,
             i: 0,
@@ -279,11 +281,35 @@ impl Cpu {
         while let Some(instruction) = self.fetch_instruction() {
             match instruction {
                 Instruction::i00E0 => self.display.clear(),
+                Instruction::i00EE => {
+                    // check for empty stack
+                    if self.sp == 0 {
+                        panic!("Error returning from subroutine with an empty stack");
+                    }
+
+                    let return_address = self.stack[self.sp];
+                    self.sp -= 1;
+
+                    // set instruction pointer to restored return addr
+                    self.ip = return_address.into();
+                }
                 Instruction::i00E1 => {
                     self.display.set_range(.., true);
                 }
                 Instruction::i1NNN(address) => self.ip = address as usize,
-                Instruction::i2NNN(address) => todo!("Haven't implemented function stack yet"),
+                Instruction::i2NNN(address) => {
+                    if self.sp == STACK_MAX_SIZE.into() {
+                        panic!("Error attempting to push onto a full stack");
+                    }
+
+                    self.sp += 1;
+
+                    // save ip of caller
+                    self.stack[self.sp] = self.ip as u16;
+
+                    // set new IP for callee function
+                    self.ip = address as usize;
+                }
                 Instruction::i3XNN(reg, data) => {
                     let reg_value = self.get_from_register(reg);
                     // skip next instruction if regX equals data
@@ -515,7 +541,7 @@ impl Cpu {
         match (nibble_1, nibble_2, nibble_3, nibble_4) {
             (0x0, _, 0xE, 0x0) => Some(Instruction::i00E0),
             (0x0, _, 0xE, 0x1) => Some(Instruction::i00E1),
-            (0x0, _, 0xE, 0xE) => todo!("Need to implement return from subroutine!"),
+            (0x0, _, 0xE, 0xE) => Some(Instruction::i00EE),
             (0x1, x, y, z) => {
                 let reassembled_jump_address = (x << 8) | (y << 4) | z;
                 Some(Instruction::i1NNN(reassembled_jump_address))
