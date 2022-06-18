@@ -24,10 +24,10 @@ pub enum Instruction {
     i8XY6(Register, Register),          // VX = VY >> 1 -> VF = LSB of VY before shift
     i8XY7(Register, Register),          // VX = VY - VX -> CAREFUL !!! VF = 0 if carry, 1 otherwise
     i8XYE(Register, Register),          // VX = VY << 1 -> VF = MSB of VY before shift
-    i9XY0(Register, Register),          // TODO
+    i9XY0(Register, Register),          // Skip next instruction iff VX != VY
     iANNN(Address),                     // Store memory address NNN in Register i
     iBNNN(Address),                     // Jump to adresss NNN + V0
-    iCXNN(Register, Address),           // TODO
+    iCXNN(Register, Address),           // Put random number and mask with NN in VX
     iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
     iEX9E(Register),                    // TODO
     iEXA1(Register),                    // TODO
@@ -63,8 +63,10 @@ impl std::fmt::Display for Instruction {
             Instruction::i8XY6(reg1, reg2) => write!(f, "8XY6 | X={reg1} | Y={reg2}"),
             Instruction::i8XY7(reg1, reg2) => write!(f, "8XY7 | X={reg1} | Y={reg2}"),
             Instruction::i8XYE(reg1, reg2) => write!(f, "8XYE | X={reg1} | Y={reg2}"),
+            Instruction::i9XY0(reg1, reg2) => write!(f, "9XY0 | X={reg1} | Y={reg2}"),
             Instruction::iANNN(addr) => write!(f, "ANNN | NNN={addr}"),
-            Instruction::iBNNN(addr) => write!(f, "BNNN | B={addr}"),
+            Instruction::iBNNN(addr) => write!(f, "BNNN | NNN={addr}"),
+            Instruction::iCXNN(reg, mask) => write!(f, "CXNN | X={reg} | NN={mask}"),
             Instruction::iDXYN(reg1, reg2, data) => {
                 write!(f, "DXYN | X={reg1} | Y={reg2} | data={data}")
             }

@@ -6,6 +6,7 @@ use crate::{
     BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE,
 };
 use fixedbitset::FixedBitSet;
+use js_sys::Math;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
@@ -331,6 +332,10 @@ impl Cpu {
                 Instruction::i8XY4(reg1, reg2) => {
                     let x_value = self.get_from_register(reg1);
                     let y_value = self.get_from_register(reg2);
+
+                    let (new_vx_val, did_overflow) = x_value.overflowing_add(y_value);
+                    self.registers[REG_VF] = if did_overflow { 1 } else { 0 };
+                    self.store_at_register(reg1, new_vx_val);
                 }
                 Instruction::i8XY5(reg1, reg2) => {
                     let x_value = self.get_from_register(reg1);
@@ -371,10 +376,22 @@ impl Cpu {
                     self.registers[0xf] = msb;
                     self.store_at_register(reg1, y_value << 1)
                 }
+                Instruction::i9XY0(reg1, reg2) => {
+                    let reg_1_val = self.get_from_register(reg1);
+                    let reg_2_val = self.get_from_register(reg2);
+
+                    if reg_1_val != reg_2_val {
+                        self.ip += 2;
+                    }
+                }
                 Instruction::iANNN(address) => self.i = address,
                 Instruction::iBNNN(address) => {
                     let reg_v0 = self.registers[REG_V0];
                     self.ip = (address + (reg_v0 as u16)) as usize;
+                }
+                Instruction::iCXNN(reg, mask) => {
+                    let rand = Math::floor(Math::random() * (u16::MAX as f64)) as u16;
+                    self.store_at_register(reg, (rand & mask) as u8)
                 }
                 Instruction::iDXYN(reg_v0, reg_v1, num_rows) => {
                     // Draw sprites starting at pixel X, Y
@@ -427,6 +444,8 @@ impl Cpu {
                     // set VF to 0 unless any pixel is cleared
                     self.registers[REG_VF] = if pixel_was_unset { 1 } else { 0 };
                 }
+                Instruction::iEX9E(reg) => todo!(""),
+                Instruction::iEXA1(reg) => todo!(""),
                 Instruction::iFX1E(reg) => {
                     let reg_x_val = self.get_from_register(reg);
 
@@ -581,6 +600,7 @@ impl Cpu {
                 let register2 = Register::from(y);
                 Some(Instruction::i8XY0(register1, register2))
             }
+            (0x9, x, y, _) => Some(Instruction::i9XY0(Register::from(x), Register::from(y))),
             (0xA, x, y, z) => {
                 let reassembled_jump_address = (x << 8) | (y << 4) | z;
                 Some(Instruction::iANNN(reassembled_jump_address))
@@ -589,6 +609,7 @@ impl Cpu {
                 let reassembled_jump_address = (x << 8) | (y << 4) | z;
                 Some(Instruction::iBNNN(reassembled_jump_address))
             }
+            (0xC, x, n1, n2) => Some(Instruction::iCXNN(Register::from(x), (n1 << 4) | n2)),
             (0xD, reg_1, reg_2, n) => {
                 let register_1 = Register::from(reg_1);
                 let register_2 = Register::from(reg_2);
