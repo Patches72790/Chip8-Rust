@@ -23,6 +23,7 @@ web-sys = { version = "0.3.57", features = [
   "CanvasRenderingContext2d",
   "Window",
   "Document",
+  "KeyboardEvent"
 ] }
 js-sys = "0.3.57"
 hex = "0.4.3"

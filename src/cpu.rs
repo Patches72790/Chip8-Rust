@@ -7,8 +7,9 @@ use crate::{
 };
 use fixedbitset::FixedBitSet;
 use js_sys::Math;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
+use web_sys::KeyboardEvent;
 
 #[wasm_bindgen]
 pub struct Cpu {
@@ -41,6 +42,8 @@ impl Cpu {
             display.set(i, false);
         }
 
+        Cpu::initialize_key_event_handler();
+
         Cpu {
             memory: Cpu::initialize_memory(),
             registers: [0u8; 16],
@@ -69,6 +72,15 @@ impl Cpu {
 
     pub fn display(&self) -> *const u32 {
         self.display.as_slice().as_ptr()
+    }
+
+    fn initialize_key_event_handler() {
+        let onkeydown_closure = Closure::wrap(
+            Box::new(|event| console_log!("keydown event")) as Box<dyn Fn(KeyboardEvent)>
+        );
+        web_sys::window()
+            .expect("Error getting window element when initializing keydown events")
+            .set_onkeydown(Some(onkeydown_closure.as_ref().unchecked_ref()));
     }
 
     /// Initialize memory with sprite fonts and
@@ -485,6 +497,10 @@ impl Cpu {
                 break;
             }
         }
+    }
+
+    fn keypress() {
+        //let document = web_sys::Document::set_onkeypress
     }
 
     fn get_from_register(&self, reg: Register) -> RegData {
