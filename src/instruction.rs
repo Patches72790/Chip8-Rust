@@ -30,17 +30,17 @@ pub enum Instruction {
     iBNNN(Address),                     // Jump to adresss NNN + V0
     iCXNN(Register, Address),           // Put random number and mask with NN in VX
     iDXYN(Register, Register, RegData), // Draw at position (VX, VY) N bytes of sprite data starting at address stored in I
-    iEX9E(Register),                    // TODO
-    iEXA1(Register),                    // TODO
-    iFX07(Register),                    // TODO
-    iFX0A(Register),                    // TODO
-    iFX15(Register),                    // TODO
-    iFX18(Register),                    // TODO
-    iFX1E(Register),                    // I += Reg[VX]
-    iFX29(Register),                    // TODO
-    iFX33(Register),                    // TODO
-    iFX55(Register),                    // TODO
-    iFX65(Register),                    // TODO
+    iEX9E(Register),                    // Skip next instruction if key stored in reg VX is pressed
+    iEXA1(Register), // Skip next instruction if key stored in reg VX is not pressed
+    iFX07(Register), // TODO
+    iFX0A(Register), // TODO
+    iFX15(Register), // TODO
+    iFX18(Register), // TODO
+    iFX1E(Register), // I += Reg[VX]
+    iFX29(Register), // TODO
+    iFX33(Register), // TODO
+    iFX55(Register), // TODO
+    iFX65(Register), // TODO
 }
 
 impl std::fmt::Display for Instruction {
@@ -72,6 +72,8 @@ impl std::fmt::Display for Instruction {
             Instruction::iDXYN(reg1, reg2, data) => {
                 write!(f, "DXYN | X={reg1} | Y={reg2} | data={data}")
             }
+            Instruction::iEX9E(reg) => write!(f, "EX9E | X={reg}"),
+            Instruction::iEXA1(reg) => write!(f, "EXA1 | X={reg}"),
             Instruction::iFX1E(reg) => write!(f, "FX1E | X={reg}"),
             _ => todo!("Unimplemented instruction"),
         }

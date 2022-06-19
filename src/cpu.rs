@@ -666,6 +666,8 @@ impl Cpu {
                     .expect("Error casting u16 to u8 in decoder for iDXYN");
                 Some(Instruction::iDXYN(register_1, register_2, data))
             }
+            (0xE, x, 0x9, _) => Some(Instruction::iEX9E(Register::from(x))),
+            (0xE, x, 0xa, _) => Some(Instruction::iEXA1(Register::from(x))),
             (0xF, reg, 0x1, 0xe) => Some(Instruction::iFX1E(Register::from(reg))),
             _ => None,
         }
