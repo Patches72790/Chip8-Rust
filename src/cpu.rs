@@ -668,7 +668,15 @@ impl Cpu {
             }
             (0xE, x, 0x9, _) => Some(Instruction::iEX9E(Register::from(x))),
             (0xE, x, 0xa, _) => Some(Instruction::iEXA1(Register::from(x))),
+            (0xF, reg, 0x0, 0x7) => Some(Instruction::iFX07(Register::from(reg))),
+            (0xF, reg, 0x0, 0xa) => Some(Instruction::iFX0A(Register::from(reg))),
+            (0xF, reg, 0x1, 0x5) => Some(Instruction::iFX15(Register::from(reg))),
+            (0xF, reg, 0x1, 0x8) => Some(Instruction::iFX18(Register::from(reg))),
             (0xF, reg, 0x1, 0xe) => Some(Instruction::iFX1E(Register::from(reg))),
+            (0xF, reg, 0x2, 0x9) => Some(Instruction::iFX29(Register::from(reg))),
+            (0xF, reg, 0x3, 0x3) => Some(Instruction::iFX33(Register::from(reg))),
+            (0xF, reg, 0x5, 0x5) => Some(Instruction::iFX55(Register::from(reg))),
+            (0xF, reg, 0x6, 0x5) => Some(Instruction::iFX65(Register::from(reg))),
             _ => None,
         }
     }

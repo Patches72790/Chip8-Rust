@@ -74,8 +74,15 @@ impl std::fmt::Display for Instruction {
             }
             Instruction::iEX9E(reg) => write!(f, "EX9E | X={reg}"),
             Instruction::iEXA1(reg) => write!(f, "EXA1 | X={reg}"),
+            Instruction::iFX07(reg) => write!(f, "FX07 | X={reg}"),
+            Instruction::iFX0A(reg) => write!(f, "FX0A | X={reg}"),
+            Instruction::iFX15(reg) => write!(f, "FX15 | X={reg}"),
+            Instruction::iFX18(reg) => write!(f, "FX18 | X={reg}"),
             Instruction::iFX1E(reg) => write!(f, "FX1E | X={reg}"),
-            _ => todo!("Unimplemented instruction"),
+            Instruction::iFX29(reg) => write!(f, "FX29 | X={reg}"),
+            Instruction::iFX33(reg) => write!(f, "FX33 | X={reg}"),
+            Instruction::iFX55(reg) => write!(f, "FX55 | X={reg}"),
+            Instruction::iFX65(reg) => write!(f, "FX65 | X={reg}"),
         }
     }
 }
