@@ -3,7 +3,7 @@ use crate::{
     keyboard::Keyboard,
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
-    util::set_panic_hook,
+    util::{make_instruction, make_instructions, set_panic_hook},
     BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE, STACK_MAX_SIZE,
 };
 use fixedbitset::FixedBitSet;
@@ -203,36 +203,11 @@ impl Cpu {
     /// FOR NOW JUST USING FOR TESTING INSTRUCTIONS IN MEMORY
     pub fn load_instructions(&mut self) {
         let mut instructions = self.memory;
-        // clear screen
-        instructions[0x200] = 0x00;
-        instructions[0x201] = 0xE0;
-
-        // set I register
-        instructions[0x202] = 0xA0;
-        instructions[0x203] = 0x50;
-
-        // set registers 0 and 1 to (0, 0)
-        instructions[0x204] = 0x60;
-        instructions[0x205] = 0x00;
-        instructions[0x206] = 0x61;
-        instructions[0x207] = 0x00;
-
-        // draw sprite 0 at (0, 0)
-        instructions[0x208] = 0xD0;
-        instructions[0x209] = 0x15;
-
-        // increment x register by 6
-        instructions[0x20a] = 0x70;
-        instructions[0x20b] = 0x06;
-
-        // increment i register to next sprite
-        instructions[0x20c] = 0xA0;
-        instructions[0x20d] = 0x55;
-
-        // draw sprite 0 at (6, 0)
-        instructions[0x20e] = 0xD0;
-        instructions[0x20f] = 0x15;
-
+        make_instructions!(
+            instructions,
+            0x200,
+            vec![0x00E0, 0xA050, 0x6000, 0x6100, 0xD015, 0x7006, 0xA055, 0xD015]
+        );
         self.memory = instructions;
     }
 

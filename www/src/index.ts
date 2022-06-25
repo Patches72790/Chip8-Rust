@@ -1,6 +1,7 @@
 import { Cpu } from "chip8-emulator";
 import runChip8 from "./ui";
 
+
 const selectRom = async () => {
   const file_input = document.getElementById("file-input") as HTMLInputElement;
   if (!file_input || !file_input.files || !file_input.files[0]) {

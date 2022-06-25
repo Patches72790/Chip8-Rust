@@ -1,10 +1,10 @@
 mod cpu;
 mod instruction;
+mod keyboard;
 mod rom;
 mod types;
 mod ui;
 mod util;
-mod keyboard;
 
 use wasm_bindgen::prelude::*;
 
@@ -21,3 +21,4 @@ pub static INSTRUCTIONS_PER_CYCLE: u16 = 1;
 pub static DEBUG_MODE: bool = true;
 
 pub const STACK_MAX_SIZE: u8 = 16;
+
