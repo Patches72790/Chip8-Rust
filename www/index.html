@@ -3,33 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <title>Chip 8 Wasm Emulator</title>
-    <style>
-      body {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-      canvas {
-      }
-    </style>
+    <link rel="stylesheet" href="index.css" />
   </head>
   <body>
-    <div>
-        <input type="file" id="file-input">
-        Load instructions from file
-        </input>
-    </div>
-    <canvas id="canvas"></canvas>
-    <div id="disassembly-container">
-      <h3>Disassembly instructions</h3>
-      <ul id="disassembly-list"></ul>
-    </div>
     <script src="./bootstrap.js"></script>
   </body>
 </html>

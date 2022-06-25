@@ -43,6 +43,13 @@ const drawDisplay = (
   context.stroke();
 };
 
+/**
+ * Runs the Chip8 and renders the loaded game instructions
+ * onto the canvas on screen.
+ *
+ * Arguments:
+ *      the loaded CPU with instructions
+ */
 const runChip8 = (cpu: Cpu) => {
   const canvas = <HTMLCanvasElement>document.getElementById("canvas");
   if (!canvas) {

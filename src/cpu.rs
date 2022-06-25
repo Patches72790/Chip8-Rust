@@ -474,7 +474,7 @@ impl Cpu {
 
                     self.i += reg_x_val as u16;
                 }
-                _ => todo!("Instruction not yet implemented"),
+                instruction => todo!("Instruction not yet implemented: {instruction}"),
             }
             // only run set instructions per tick of CPU
             instruction_count += 1;

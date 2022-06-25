@@ -1,7 +1,26 @@
+import { Cpu } from "chip8-emulator";
+import runChip8 from ".";
+import disassembleInstructions from "../helpers/disassembly";
+
+/**
+ * Adds the ROM Selection Node to the screen
+ * and waits for user selection.
+ */
+const renderChip8Console = () => {
+  document.body.appendChild(RenderSelectRom());
+};
+
+/**
+ * Creates the Select ROM Node with input handler
+ * for selecting and reading ROM instructions.
+ *
+ * After ROM is selected, the Chip8 screen is then
+ * rendered to screen.
+ */
 const RenderSelectRom = () => {
   const divElement = document.createElement("div");
   const inputElement = document.createElement("input");
-  inputElement.innerHTML = "Load your Chip8 ROM!";
+  inputElement.textContent = "Load your Chip8 ROM!";
   divElement.id = "select-rom";
 
   inputElement.type = "file";
@@ -16,6 +35,7 @@ const RenderSelectRom = () => {
 
     const array = await file_input.files[0].arrayBuffer();
     const instructions_array = new Uint8Array(array);
+
     RenderChip8(instructions_array);
   });
 
@@ -27,16 +47,34 @@ const RenderSelectRom = () => {
 const RenderChip8 = (instructions_array: Uint8Array) => {
   const canvas = document.createElement("canvas");
   canvas.id = "canvas";
+  const selectRomContainer = document.getElementById("select-rom");
 
-  canvas.addEventListener("load", () => {});
+  if (!selectRomContainer) {
+    throw Error("Error finding ROM selection div");
+  }
 
-  return canvas;
+  // remove selection node
+  const selectRomNode = document.getElementById("select-rom");
+  if (!selectRomNode) throw Error("Error finding select rom node");
+  document.body.removeChild(selectRomNode);
+
+  // add canvas node
+  document.body.appendChild(canvas);
+
+  // start CPU
+  const cpu = Cpu.new();
+  cpu.load_instructions_from_file(instructions_array);
+
+  const debugContainer = RenderDebugTools(cpu);
+  document.body.appendChild(debugContainer);
+
+  runChip8(cpu);
 };
 
-const RenderDebugTools = () => {
+const RenderDebugTools = (cpu: Cpu) => {
   const divElement = document.createElement("div");
   const h3Title = document.createElement("h3");
-  const disassemblyUL = document.createElement("ul");
+  const disassemblyUL = disassembleInstructions(cpu.disassemble());
 
   divElement.id = "disassembly-container";
   h3Title.innerHTML = "Disassembly Instructions";
@@ -46,3 +84,5 @@ const RenderDebugTools = () => {
 
   return divElement;
 };
+
+export default renderChip8Console;
