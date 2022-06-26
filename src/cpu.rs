@@ -3,12 +3,14 @@ use crate::{
     keyboard::Keyboard,
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
-    util::{make_instruction, make_instructions, set_panic_hook},
-    BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE, STACK_MAX_SIZE,
+    util::{make_instructions, set_panic_hook},
+    BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE, KEY_0_ADDR, KEY_1_ADDR, KEY_2_ADDR,
+    KEY_3_ADDR, KEY_4_ADDR, KEY_5_ADDR, KEY_6_ADDR, KEY_7_ADDR, KEY_8_ADDR, KEY_9_ADDR, KEY_A_ADDR,
+    KEY_B_ADDR, KEY_C_ADDR, KEY_D_ADDR, KEY_E_ADDR, KEY_F_ADDR, STACK_MAX_SIZE,
 };
 use fixedbitset::FixedBitSet;
 use js_sys::Math;
-use wasm_bindgen::{prelude::*, JsCast};
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
 #[wasm_bindgen]
@@ -211,11 +213,9 @@ impl Cpu {
         self.memory = instructions;
     }
 
-    /// TODO! This doesn't work as it should right now.
-    /// Setting properties of cpu at runtime violates borrowing
-    /// rules in rust, so it is not allowed.
-    /// How else could I setup instructions to be loaded at runtime
-    /// without giving access to the global cpu in the JS code?
+    /// Load instructions from a file input in the browser.
+    /// The instructions are assumed to be in u8 chunks,
+    /// so half of an instruction at each array index.
     pub fn load_instructions_from_file(&mut self, bytes_array: js_sys::Uint8Array) {
         let instructions_vec = bytes_array.to_vec();
 
@@ -228,6 +228,7 @@ impl Cpu {
         self.memory = new_memory;
     }
 
+    /// Returns the raw display data of the CPU as a Rust String
     pub fn render(&self) -> String {
         self.to_string()
     }
@@ -469,12 +470,47 @@ impl Cpu {
                         self.ip += 2;
                     }
                 }
+                Instruction::iFX07(reg) => self.store_at_register(reg, self.delay_timer),
+                Instruction::iFX0A(reg) => {
+                    // wait for keypress and store result in reg VX
+                    todo!("Need to implement wait for keypress");
+                }
+                Instruction::iFX15(reg) => {
+                    self.delay_timer = self.get_from_register(reg);
+                }
+                Instruction::iFX18(reg) => {
+                    self.sound_timer = self.get_from_register(reg);
+                }
                 Instruction::iFX1E(reg) => {
                     let reg_x_val = self.get_from_register(reg);
 
                     self.i += reg_x_val as u16;
                 }
-                instruction => todo!("Instruction not yet implemented: {instruction}"),
+                Instruction::iFX29(reg) => {
+                    let ls_nibble = self.get_from_register(reg) & 0x000F;
+                    self.i = match ls_nibble {
+                        0x0 => KEY_0_ADDR,
+                        0x1 => KEY_1_ADDR,
+                        0x2 => KEY_2_ADDR,
+                        0x3 => KEY_3_ADDR,
+                        0x4 => KEY_4_ADDR,
+                        0x5 => KEY_5_ADDR,
+                        0x6 => KEY_6_ADDR,
+                        0x7 => KEY_7_ADDR,
+                        0x8 => KEY_8_ADDR,
+                        0x9 => KEY_9_ADDR,
+                        0xa => KEY_A_ADDR,
+                        0xb => KEY_B_ADDR,
+                        0xc => KEY_C_ADDR,
+                        0xd => KEY_D_ADDR,
+                        0xe => KEY_E_ADDR,
+                        0xf => KEY_F_ADDR,
+                        _ => panic!("Cannot assign i to key greater than 16 (0xF)")
+                    }
+                }
+                Instruction::iFX33(reg) => todo!("TODO FX33"),
+                Instruction::iFX55(reg) => todo!("TODO FX55"),
+                Instruction::iFX65(reg) => todo!("TODO FX65"),
             }
             // only run set instructions per tick of CPU
             instruction_count += 1;
