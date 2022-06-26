@@ -240,6 +240,14 @@ impl Cpu {
         self.clock += 1;
     }
 
+    fn decrement_delay_timer(&mut self) {
+        self.delay_timer -= 60;
+    }
+
+    fn decrement_sound_timer(&mut self) {
+        self.sound_timer -= 60;
+    }
+
     fn get_index(&self, row: usize, col: usize) -> usize {
         row * (self.width) + col
     }
@@ -260,7 +268,7 @@ impl Cpu {
     /// Main interpreter loop for fetching, decoding, executing instructions.
     /// This is invoked each "cycle" from the public tick function in the cpu impl.
     fn interpret(&mut self) {
-        let mut instruction_count = 0;
+        let mut instruction_count: u32 = 0;
         while let Some(instruction) = self.fetch_instruction() {
             match instruction {
                 Instruction::i00E0 => self.display.clear(),
@@ -473,7 +481,15 @@ impl Cpu {
                 Instruction::iFX07(reg) => self.store_at_register(reg, self.delay_timer),
                 Instruction::iFX0A(reg) => {
                     // wait for keypress and store result in reg VX
-                    todo!("Need to implement wait for keypress");
+                    if let Some(key) = self.keyboard.get_registered_key() {
+                        todo!("Need to set register VX to key that is registered");
+                    } else {
+                        //otherwise simulate wait -- decrement tick and counter
+                        self.ip -= 2;
+                        if let None = instruction_count.checked_sub(1) {
+                            panic!("Error cannot reduce instruction count below 0 in FX0A")
+                        }
+                    }
                 }
                 Instruction::iFX15(reg) => {
                     self.delay_timer = self.get_from_register(reg);
@@ -505,7 +521,7 @@ impl Cpu {
                         0xd => KEY_D_ADDR,
                         0xe => KEY_E_ADDR,
                         0xf => KEY_F_ADDR,
-                        _ => panic!("Cannot assign i to key greater than 16 (0xF)")
+                        _ => panic!("Cannot assign i to key greater than 16 (0xF)"),
                     }
                 }
                 Instruction::iFX33(reg) => todo!("TODO FX33"),

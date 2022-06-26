@@ -5,6 +5,10 @@ use web_sys::KeyboardEvent;
 use crate::DEBUG_MODE;
 
 static mut KEYS: Keys = Keys::new();
+/// Represents the key that was just pressed and released
+/// Will be Some on release, but is set to None when another
+/// key is pressed
+static mut REGISTERED_KEY: Option<u8> = None;
 
 ///
 /// Traditional Chip-8 keyboard uses these mappings for
@@ -126,6 +130,10 @@ impl Keyboard {
             unsafe { KEYS.get_key(key.into()) }
         }
     }
+
+    pub fn get_registered_key(&self) -> Option<u8> {
+        unsafe { REGISTERED_KEY }
+    }
 }
 
 impl Default for Keyboard {
@@ -155,6 +163,29 @@ const KEYD: u32 = 0x44;
 const KEYE: u32 = 0x45;
 const KEYF: u32 = 0x46;
 
+/// TODO -- Come up with a better way to represent the 16 Keys
+/// that would support mappings to different keys on the keyboard
+/// Use the default key names for Chip 8, but represent them with
+/// default mappings for a QWERTY keyboard?
+#[derive(Debug)]
+pub enum Key {
+    Key1,
+    Key2,
+    Key3,
+    Key4,
+    Key5,
+    Key6,
+    Key7,
+    Key8,
+    Key9,
+    KeyA,
+    KeyB,
+    KeyC,
+    KeyD,
+    KeyE,
+    KeyF,
+}
+
 #[derive(Debug, Default)]
 #[wasm_bindgen]
 pub struct Keys {
@@ -167,14 +198,24 @@ impl Keys {
     }
 
     pub fn set_key(&mut self, key: usize) {
+        unsafe {
+            REGISTERED_KEY = None;
+        }
         self._keys[key] = true;
     }
 
     pub fn clear_key(&mut self, key: usize) {
+        unsafe {
+            REGISTERED_KEY = Some(key as u8);
+        }
         self._keys[key] = false;
     }
 
     pub fn get_key(&mut self, key: usize) -> bool {
         self._keys[key]
+    }
+
+    pub fn any_key_pressed(&self) -> bool {
+        self._keys.iter().any(|e| *e)
     }
 }
