@@ -149,7 +149,7 @@ impl Default for Keyboard {
 const KEY1: u32 = 0x31;
 const KEY2: u32 = 0x32;
 const KEY3: u32 = 0x33;
-const KEY4: u32 = 0x34;
+const KEY4: u32 = 0x34; // 4 == C
 const KEY5: u32 = 0x35;
 const KEY6: u32 = 0x36;
 const KEY7: u32 = 0x37;
