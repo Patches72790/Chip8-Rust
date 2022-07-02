@@ -3,7 +3,7 @@ use crate::{
     keyboard::Keyboard,
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
-    util::{make_instructions, set_panic_hook},
+    util::{hex2decimal, make_instructions, set_panic_hook},
     BITS_IN_BYTE, DEBUG_MODE, INSTRUCTIONS_PER_CYCLE, KEY_0_ADDR, KEY_1_ADDR, KEY_2_ADDR,
     KEY_3_ADDR, KEY_4_ADDR, KEY_5_ADDR, KEY_6_ADDR, KEY_7_ADDR, KEY_8_ADDR, KEY_9_ADDR, KEY_A_ADDR,
     KEY_B_ADDR, KEY_C_ADDR, KEY_D_ADDR, KEY_E_ADDR, KEY_F_ADDR, STACK_MAX_SIZE,
@@ -12,6 +12,14 @@ use fixedbitset::FixedBitSet;
 use js_sys::Math;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
+
+///
+/// Quirk instructions list for SUPER-CHIP
+///
+/// 8XY6 & 8XYE      ===> VX is shifted in place WITHOUT using VY
+/// BNNN Alternative ===> Jump to XNN + Reg[VX]
+/// FX55 & FX65      ===> I register is NOT MUTATED (should be default)
+///
 
 #[wasm_bindgen]
 pub struct Cpu {
@@ -482,12 +490,14 @@ impl Cpu {
                 Instruction::iFX0A(reg) => {
                     // wait for keypress and store result in reg VX
                     if let Some(key) = self.keyboard.get_registered_key() {
-                        todo!("Need to set register VX to key that is registered");
+                        self.store_at_register(reg, key);
                     } else {
                         //otherwise simulate wait -- decrement tick and counter
                         self.ip -= 2;
-                        if let None = instruction_count.checked_sub(1) {
-                            panic!("Error cannot reduce instruction count below 0 in FX0A")
+                        instruction_count = if let Some(val) = instruction_count.checked_sub(1) {
+                            val
+                        } else {
+                            0
                         }
                     }
                 }
@@ -524,9 +534,24 @@ impl Cpu {
                         _ => panic!("Cannot assign i to key greater than 16 (0xF)"),
                     }
                 }
-                Instruction::iFX33(reg) => todo!("TODO FX33"),
-                Instruction::iFX55(reg) => todo!("TODO FX55"),
-                Instruction::iFX65(reg) => todo!("TODO FX65"),
+                Instruction::iFX33(reg) => {
+                    let decimal_array = hex2decimal(self.get_from_register(reg));
+
+                    let pointer: usize = self.i.into();
+
+                    self.memory[pointer..(2 + pointer)]
+                        .copy_from_slice(&decimal_array[pointer..(2 + pointer)]);
+                }
+                Instruction::iFX55(reg) => {
+                    // store values of registers V0 to VX in memory starting at I
+                    // DONT SET I to new value after operation
+                    todo!("TODO FX55")
+                }
+                Instruction::iFX65(reg) => {
+                    // FILL registers V0 to VX with values starting from memory at I
+                    // DONT SET I to new value after operation
+                    todo!("TODO FX65")
+                }
             }
             // only run set instructions per tick of CPU
             instruction_count += 1;
