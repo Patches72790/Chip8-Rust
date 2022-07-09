@@ -9,7 +9,7 @@ use crate::{
     KEY_B_ADDR, KEY_C_ADDR, KEY_D_ADDR, KEY_E_ADDR, KEY_F_ADDR, STACK_MAX_SIZE,
 };
 use fixedbitset::FixedBitSet;
-use js_sys::Math;
+use js_sys::{Math, Object};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
@@ -27,7 +27,6 @@ pub struct Cpu {
     memory: [u8; 4096],
     registers: [RegData; 16],
     stack: [Address; 16], // stack storing return address pointers for functions
-    clock: u128,
     delay_timer: u8,
     sound_timer: u8,
     display: FixedBitSet, // display fixed at 64 * 32 pixels
@@ -39,6 +38,19 @@ pub struct Cpu {
     keyboard: Keyboard,
     pixel_on: String,
     pixel_off: String,
+}
+
+#[wasm_bindgen]
+pub struct CpuDebugBlock {
+    pub memory: *const u8,
+    pub registers: *const u8,
+    pub stack: *const u16, // stack storing return address pointers for functions
+    pub delay_timer: u8,
+    pub sound_timer: u8,
+    pub ip: usize,  // instruction pointer
+    pub sp: usize,  // stack pointer denoting current top of stack
+    pub i: Address, // special memory pointer I
+    pub keyboard: *const bool,
 }
 
 #[wasm_bindgen]
@@ -65,7 +77,6 @@ impl Cpu {
             delay_timer: 0,
             sound_timer: 0,
             i: 0,
-            clock: 0,
             display,
             ip: 0x200, // Code section starts at 0x200 in memory
             height,
@@ -73,6 +84,20 @@ impl Cpu {
             keyboard,
             pixel_on: "◽".to_string(),
             pixel_off: "◾".to_string(),
+        }
+    }
+
+    pub fn debug_dump(&self) -> CpuDebugBlock {
+        CpuDebugBlock {
+            memory: self.memory.as_slice().as_ptr(),
+            registers: self.registers.as_slice().as_ptr(),
+            stack: self.stack.as_ptr(),
+            delay_timer: self.delay_timer,
+            sound_timer: self.sound_timer,
+            ip: self.ip,
+            sp: self.sp,
+            i: self.i,
+            keyboard: self.keyboard.as_ptr(),
         }
     }
 
@@ -245,7 +270,8 @@ impl Cpu {
     /// This should be used each iteration of the main rendering loop.
     pub fn tick(&mut self) {
         self.interpret();
-        self.clock += 1;
+        self.decrement_delay_timer();
+        self.decrement_sound_timer();
     }
 
     fn decrement_delay_timer(&mut self) {

@@ -17,7 +17,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub static BITS_IN_BYTE: u8 = 8;
 
 /// Variable constant for determining cycles per second (hertz)
-pub static INSTRUCTIONS_PER_CYCLE: u32 = 25;
+pub static INSTRUCTIONS_PER_CYCLE: u32 = 1;
 
 pub static DEBUG_MODE: bool = true;
 

@@ -54,6 +54,10 @@ impl Keyboard {
         }
     }
 
+    pub fn as_ptr(&self) -> *const bool {
+        unsafe { KEYS._keys.as_ptr() }
+    }
+
     pub fn initialize_key_event_handlers(&mut self) {
         let onkeydown_closure = Closure::wrap(Box::new(|event: KeyboardEvent| {
             if DEBUG_MODE {

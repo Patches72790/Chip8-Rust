@@ -1,5 +1,5 @@
 import { Cpu } from "chip8-emulator";
-import disassembleInstructions from "../helpers/disassembly";
+import { disassembleInstructions, updateCpuInternals } from "../helpers/debug";
 import { memory } from "chip8-emulator/chip8_rust_bg.wasm";
 
 const PIXEL_SIZE = 15;
@@ -69,6 +69,7 @@ const runChip8 = (cpu: Cpu) => {
   const renderLoop = () => {
     drawDisplay(context, cpu.display(), cpu.width(), cpu.height());
     cpu.tick();
+    updateCpuInternals(cpu.debug_dump());
 
     requestAnimationFrame(renderLoop);
   };

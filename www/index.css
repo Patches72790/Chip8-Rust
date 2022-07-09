@@ -11,13 +11,21 @@ body {
   background: #80808080;
 }
 
-canvas {}
+canvas {
+}
+
+#select-rom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 
 #debugging-container {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 25%;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 25%;
 }
 
 #disassembly-container {
@@ -51,4 +59,9 @@ canvas {}
   max-height: 100%;
   width: 50%;
   overflow: scroll;
+}
+
+#inner-cpu-internals {
+  display: none;
+  overflow-y: auto;
 }
