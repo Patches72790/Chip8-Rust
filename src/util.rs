@@ -1,4 +1,5 @@
 extern crate console_error_panic_hook;
+use wasm_bindgen_test::wasm_bindgen_test;
 
 pub fn set_panic_hook() {
     console_error_panic_hook::set_once();
@@ -7,12 +8,44 @@ pub fn set_panic_hook() {
 pub fn hex2decimal(mut hex_number: u8) -> [u8; 3] {
     let mut decimal_array = [0u8; 3];
 
-    for index in (0..2).rev() {
+    for index in (0..=2).rev() {
         decimal_array[index as usize] = hex_number % 10;
         hex_number /= 10;
     }
 
     decimal_array
+}
+
+#[wasm_bindgen_test]
+fn test_hex2decimal() {
+    let num = 0x23;
+
+    let actual = hex2decimal(num);
+    assert_eq!(actual, [0, 3, 5]);
+}
+
+#[wasm_bindgen_test]
+fn test_hex2decimal_2() {
+    let num = 0xff;
+
+    let actual = hex2decimal(num);
+    assert_eq!(actual, [2, 5, 5]);
+}
+
+#[wasm_bindgen_test]
+fn test_hex2decimal_3() {
+    let num = 0x00;
+
+    let actual = hex2decimal(num);
+    assert_eq!(actual, [0, 0, 0]);
+}
+
+#[wasm_bindgen_test]
+fn test_hex2decimal_4() {
+    let num = 0x01;
+
+    let actual = hex2decimal(num);
+    assert_eq!(actual, [0, 0, 1]);
 }
 
 /// Helper macro to set a 2 bytes instruction

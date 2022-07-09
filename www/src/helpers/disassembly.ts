@@ -1,11 +1,11 @@
-const disassembleInstructions = (instructions: string[]): HTMLUListElement => {
+const disassembleInstructions = (instructions: string[]): HTMLDivElement => {
   console.log(`Assembly Instructions: ${instructions}`);
 
-  const disassemblyList = document.createElement("ul");
+  const disassemblyList = document.createElement("div");
 
-  instructions.forEach((instr) => {
-    const listItem = document.createElement("li");
-    listItem.appendChild(document.createTextNode(instr));
+  instructions.forEach((instr, i) => {
+    const listItem = document.createElement("p");
+    listItem.appendChild(document.createTextNode(`${i} -> ${instr}`));
     disassemblyList?.appendChild(listItem);
   });
 
