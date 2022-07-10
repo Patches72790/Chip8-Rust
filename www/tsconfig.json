@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
-    "module": "commonjs",
+    "module": "es2022",
     "esModuleInterop": true,
     "target": "es6",
     "moduleResolution": "node",
@@ -13,5 +13,5 @@
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
-  "lib": ["es2021"]
+  "lib": ["es2022", "webworker"]
 }

@@ -42,7 +42,6 @@ pub struct Cpu {
 
 #[wasm_bindgen]
 pub struct CpuDebugBlock {
-    pub memory: *const u8,
     pub registers: *const u8,
     pub stack: *const u16, // stack storing return address pointers for functions
     pub delay_timer: u8,
@@ -50,7 +49,6 @@ pub struct CpuDebugBlock {
     pub ip: usize,  // instruction pointer
     pub sp: usize,  // stack pointer denoting current top of stack
     pub i: Address, // special memory pointer I
-    pub keyboard: *const bool,
 }
 
 #[wasm_bindgen]
@@ -89,7 +87,6 @@ impl Cpu {
 
     pub fn debug_dump(&self) -> CpuDebugBlock {
         CpuDebugBlock {
-            memory: self.memory.as_slice().as_ptr(),
             registers: self.registers.as_slice().as_ptr(),
             stack: self.stack.as_ptr(),
             delay_timer: self.delay_timer,
@@ -97,7 +94,6 @@ impl Cpu {
             ip: self.ip,
             sp: self.sp,
             i: self.i,
-            keyboard: self.keyboard.as_ptr(),
         }
     }
 
@@ -275,11 +271,11 @@ impl Cpu {
     }
 
     fn decrement_delay_timer(&mut self) {
-        self.delay_timer -= 60;
+        self.delay_timer = self.delay_timer.saturating_sub(60);
     }
 
     fn decrement_sound_timer(&mut self) {
-        self.sound_timer -= 60;
+        self.sound_timer = self.sound_timer.saturating_sub(60);
     }
 
     fn get_index(&self, row: usize, col: usize) -> usize {

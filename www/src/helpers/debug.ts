@@ -1,4 +1,5 @@
-import { CpuDebugBlock } from 'chip8-emulator'
+import { CpuDebugBlock } from "chip8-emulator";
+import { memory } from "chip8-emulator/chip8_rust_bg.wasm";
 
 export const disassembleInstructions = (
   instructions: string[]
@@ -25,7 +26,25 @@ export const updateCpuInternals = (debugDump: CpuDebugBlock) => {
   const internalsContainer = document.getElementById("inner-cpu-internals");
   if (!internalsContainer) return;
 
-  const registersDiv = document.createElement("div");
-  registersDiv.innerHTML = debugDump.stack.toString();
-  internalsContainer.append(registersDiv);
+  const registers = new Uint8Array(memory.buffer, debugDump.registers, 16);
+  const stack = new Uint16Array(memory.buffer, debugDump.stack, 16);
+  const { delay_timer, sound_timer, ip, sp, i } = debugDump;
+
+  setTextForDebugDiv("debug-registers", registers);
+  setTextForDebugDiv("debug-stack", stack);
+  setTextForDebugDiv("debug-delay-timer", delay_timer);
+  setTextForDebugDiv("debug-sound-timer", sound_timer);
+  setTextForDebugDiv("debug-ip", ip);
+  setTextForDebugDiv("debug-sp", sp);
+  setTextForDebugDiv("debug-i", i);
+};
+
+const setTextForDebugDiv = (
+  id: string,
+  data: Uint8Array | Uint16Array | number
+) => {
+  const element = document.getElementById(id);
+  if (!element) return;
+
+  element.textContent = data.toString();
 };

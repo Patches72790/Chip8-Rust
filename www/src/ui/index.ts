@@ -1,5 +1,5 @@
 import { Cpu } from "chip8-emulator";
-import { disassembleInstructions, updateCpuInternals } from "../helpers/debug";
+import { updateCpuInternals } from "../helpers/debug";
 import { memory } from "chip8-emulator/chip8_rust_bg.wasm";
 
 const PIXEL_SIZE = 15;
@@ -55,8 +55,6 @@ const runChip8 = (cpu: Cpu) => {
   if (!canvas) {
     throw Error("Error finding canvas element");
   }
-
-  disassembleInstructions(cpu.disassemble());
 
   canvas.height = cpu.height() * (PIXEL_SIZE + PIXEL_PADDING);
   canvas.width = cpu.width() * (PIXEL_SIZE + PIXEL_PADDING);

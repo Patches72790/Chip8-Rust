@@ -1,6 +1,7 @@
 import { Cpu } from "chip8-emulator";
 import runChip8 from ".";
 import { disassembleInstructions } from "../helpers/debug";
+import { createElementWith } from "./helpers";
 
 /**
  * Adds the ROM Selection Node to the screen
@@ -74,6 +75,37 @@ const RenderChip8 = (instructions_array: Uint8Array) => {
   runChip8(cpu);
 };
 
+const makeCpuInternals = (): HTMLDivElement => {
+  const cpuInternalsDiv = createElementWith("div", {
+    id: "cpu-internals-container",
+  }) as HTMLDivElement;
+  const cpuTitle = createElementWith("h3", {
+    innerHTML: "CPU Internals",
+  });
+  const innerCpuInternalsDiv = createElementWith("div", {
+    id: "inner-cpu-internals",
+  });
+  innerCpuInternalsDiv.append(
+    ...[
+      "debug-registers",
+      "debug-stack",
+      "debug-delay-timer",
+      "debug-sound-timer",
+      "debug-ip",
+      "debug-sp",
+      "debug-i",
+    ].map((id) => createElementWith("div", { id }))
+  );
+  cpuInternalsDiv.onclick = () => {
+    const internals = document.getElementById("inner-cpu-internals");
+    if (!internals) return;
+    internals.style.display =
+      internals.style.display === "none" ? "block" : "none";
+  };
+  cpuInternalsDiv.append(cpuTitle, innerCpuInternalsDiv);
+  return cpuInternalsDiv;
+};
+
 const RenderDebugTools = (cpu: Cpu) => {
   const debuggingContainer = document.createElement("div");
   debuggingContainer.id = "debugging-container";
@@ -81,13 +113,6 @@ const RenderDebugTools = (cpu: Cpu) => {
   const divElement = document.createElement("div");
   const h3Title = document.createElement("h3");
   const disassemblyUL = disassembleInstructions(cpu.disassemble());
-
-  const cpuInternalsDiv = document.createElement("div");
-  const cpuTitle = document.createElement("h3");
-  const innerCpuInternalsDiv = document.createElement("div");
-  cpuTitle.innerHTML = "CPU Internals";
-  cpuInternalsDiv.id = "cpu-internals-container";
-  innerCpuInternalsDiv.id = "inner-cpu-internals";
 
   divElement.id = "disassembly-container";
   h3Title.innerHTML = "Disassembly Instructions";
@@ -98,15 +123,8 @@ const RenderDebugTools = (cpu: Cpu) => {
     list.style.display = list.style.display === "none" ? "block" : "none";
   };
 
-  cpuInternalsDiv.onclick = () => {
-    const internals = document.getElementById("inner-cpu-internals");
-    if (!internals) return;
-    internals.style.display =
-      internals.style.display === "none" ? "block" : "none";
-  };
-
   divElement.append(h3Title, disassemblyUL);
-  cpuInternalsDiv.append(cpuTitle, innerCpuInternalsDiv);
+  const cpuInternalsDiv = makeCpuInternals();
 
   debuggingContainer.append(divElement, cpuInternalsDiv);
 
