@@ -1,6 +1,7 @@
-FROM "ubuntu"
+FROM "rust"
 
 WORKDIR /app
+ADD . /app
 
 RUN apt-get update && apt-get install -y \
     ca-certificates \
@@ -8,15 +9,9 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libssl-dev build-essential checkinstall zlib1g-dev # openssl deps
 
-# install rust
-RUN curl https://sh.rustup.rs -sSf > rustup.sh
-RUN chmod 755 rustup.sh
-RUN ./rustup.sh -y
-
 # build rust-wasm package
-COPY . /app
-RUN ~/.cargo/bin/cargo install wasm-pack
-RUN ~/.cargo/bin/wasm-pack build
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
+RUN wasm-pack build
 
 # install node
 ARG NODE_VERSION=14.16.0
@@ -29,11 +24,9 @@ ENV PATH $NODE_HOME/bin:$PATH
 RUN curl https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz | tar -xzC /opt/
 
 # build npm project
-RUN npm i -g typescript
-COPY ./www /app/www
-RUN npm i
-
 WORKDIR /app/www
+RUN npm i -g typescript webpack webpack-dev-server webpack-cli
+RUN npm i
 RUN tsc
 
 CMD [ "npm", "run", "start" ]
