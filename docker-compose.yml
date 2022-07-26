@@ -1,3 +1,11 @@
-version: "3"
+version: "3.8"
 
-
+services:
+  webapp:
+    container_name: chip8-rust
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app

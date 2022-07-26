@@ -9,4 +9,8 @@ module.exports = {
   },
   mode: "development",
   plugins: [new CopyWebpackPlugin(["index.html"])],
+    devServer: {
+    host: '0.0.0.0',
+    port: '8080'
+    }
 };
