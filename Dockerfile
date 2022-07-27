@@ -29,6 +29,6 @@ RUN npm i -g typescript webpack webpack-dev-server webpack-cli
 RUN npm i
 RUN tsc
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD [ "npm", "run", "start" ]
