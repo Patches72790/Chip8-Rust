@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
 
 # build rust-wasm package
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
-RUN wasm-pack build
 
 # install node
 ARG NODE_VERSION=14.16.0
@@ -25,9 +24,7 @@ RUN curl https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz | tar -xzC 
 
 # build npm project
 WORKDIR /app/www
-RUN npm i -g typescript webpack webpack-dev-server webpack-cli
-RUN npm i
-RUN tsc
+RUN npm run build
 
 EXPOSE 8080
 
