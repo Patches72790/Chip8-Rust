@@ -1,16 +1,13 @@
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const path = require("path");
+const { merge } = require("webpack-merge");
+const common = require("./webpack.common.js");
 
-module.exports = {
-  entry: "./bootstrap.js",
-  output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "bootstrap.js",
-  },
+module.exports = merge(common, {
   mode: "development",
-  plugins: [new CopyWebpackPlugin(["./public/index.html"])],
+  devtool: "inline-source-map",
   devServer: {
     host: "0.0.0.0",
     port: "8080",
+    static: "./public",
+    hot: true,
   },
-};
+});

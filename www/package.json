@@ -3,16 +3,12 @@
   "version": "0.1.0",
   "description": "A Chip8 emulator written in Rust, Web Assembly, and JavaScript!",
   "main": "src/index.js",
-  "type": "module",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
-    "build": "wasm-pack build && tsc",
-    "start:server": "nodemon dist/server.js",
-    "start": "webpack-dev-server",
-    "start2": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server",
-    "go": "npm run build && npm run start2"
+    "start": "wasm-pack build && webpack serve -c webpack.config.js",
+    "build": "wasm-pack build && webpack -c webpack.prod.js"
   },
   "repository": {
     "type": "git",
@@ -44,8 +40,9 @@
     "eslint-plugin-prettier": "^4.0.0",
     "hello-wasm-pack": "^0.1.0",
     "typescript": "^4.6.4",
-    "webpack": "^4.29.3",
-    "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.1.5"
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3",
+    "webpack-merge": "^5.8.0"
   }
 }
