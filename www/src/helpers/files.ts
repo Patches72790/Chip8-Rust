@@ -9,4 +9,3 @@ fileInputElement?.addEventListener("change", async (event) => {
 
   console.log(byteArray);
 });
-

@@ -11,6 +11,7 @@ use crate::{
 use fixedbitset::FixedBitSet;
 use js_sys::{Math, Object};
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::{console_log, wasm_bindgen_test};
 
 ///
@@ -475,13 +476,13 @@ impl Cpu {
                             }
 
                             if DEBUG_MODE {
-                                console_log!(
-                                    "Setting ({},{})@index({}) to : {}",
-                                    (x_coord),
-                                    (y_coord),
-                                    index,
-                                    new_pixel_value
-                                );
+                                //console_log!(
+                                //    "Setting ({},{})@index({}) to : {}",
+                                //    (x_coord),
+                                //    (y_coord),
+                                //    index,
+                                //    new_pixel_value
+                                //);
                             }
                             self.display.set(index, new_pixel_value);
                         }
@@ -523,12 +524,9 @@ impl Cpu {
                         }
                     }
                 }
-                Instruction::iFX15(reg) => {
-                    self.delay_timer = self.get_from_register(reg);
-                }
-                Instruction::iFX18(reg) => {
-                    self.sound_timer = self.get_from_register(reg);
-                }
+
+                Instruction::iFX15(reg) => self.delay_timer = self.get_from_register(reg),
+                Instruction::iFX18(reg) => self.sound_timer = self.get_from_register(reg),
                 Instruction::iFX1E(reg) => {
                     let reg_x_val = self.get_from_register(reg);
 
@@ -693,42 +691,42 @@ impl Cpu {
             (0x8, x, y, 1) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY1(register1, register2))
             }
             (0x8, x, y, 2) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY2(register1, register2))
             }
             (0x8, x, y, 3) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY3(register1, register2))
             }
             (0x8, x, y, 4) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY4(register1, register2))
             }
             (0x8, x, y, 5) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY5(register1, register2))
             }
             (0x8, x, y, 6) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY6(register1, register2))
             }
             (0x8, x, y, 7) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XY7(register1, register2))
             }
             (0x8, x, y, 0xe) => {
                 let register1 = Register::from(x);
                 let register2 = Register::from(y);
-                Some(Instruction::i8XY0(register1, register2))
+                Some(Instruction::i8XYE(register1, register2))
             }
             (0x9, x, y, _) => Some(Instruction::i9XY0(Register::from(x), Register::from(y))),
             (0xA, x, y, z) => {
