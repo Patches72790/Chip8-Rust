@@ -1,4 +1,4 @@
-FROM "rust"
+FROM "rust" as build
 
 WORKDIR /app
 ADD . /app
@@ -24,8 +24,11 @@ RUN curl https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz | tar -xzC 
 
 # build npm project
 WORKDIR /app/www
-RUN npm run build
+RUN npm run build:prod
 
 EXPOSE 8080
 
-CMD [ "npm", "run", "start" ]
+FROM nginx:latest
+
+ADD ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/www/dist /usr/share/nginx/html 
