@@ -11,14 +11,11 @@ body {
   background: #80808080;
 }
 
-canvas {
-}
-
 #select-rom {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 #debugging-container {

@@ -4,6 +4,10 @@ use web_sys::KeyboardEvent;
 
 use crate::DEBUG_MODE;
 
+static POWERS_OF_TWO: [u16; 16] = [
+    1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
+];
+
 static mut KEYS: Keys = Keys::new();
 /// Represents the key that was just pressed and released
 /// Will be Some on release, but is set to None when another
@@ -138,6 +142,10 @@ impl Keyboard {
     pub fn get_registered_key(&self) -> Option<u8> {
         unsafe { REGISTERED_KEY }
     }
+
+    pub fn debug(&self) -> *const bool {
+        unsafe { KEYS._keys.as_slice().as_ptr() }
+    }
 }
 
 impl Default for Keyboard {
@@ -190,7 +198,7 @@ pub enum Key {
     KeyF,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 #[wasm_bindgen]
 pub struct Keys {
     _keys: [bool; 16],

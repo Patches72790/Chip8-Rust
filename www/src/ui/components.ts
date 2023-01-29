@@ -94,6 +94,7 @@ const makeCpuInternals = (): HTMLDivElement => {
       "debug-ip",
       "debug-sp",
       "debug-i",
+      "debug-keys",
     ].map((id) => createElementWith("div", { id }))
   );
   cpuInternalsDiv.onclick = () => {

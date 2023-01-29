@@ -7,7 +7,7 @@
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
-    "start:dev": "wasm-pack build && webpack serve -c webpack.config.js",
+    "start:dev": "wasm-pack build && tsc && webpack serve -c webpack.config.js",
     "build:prod": "wasm-pack build && webpack -c webpack.prod.js",
     "esbuild": "tsc && node esbuild.dev.ts",
     "build": "wasm-pack build && tsc",

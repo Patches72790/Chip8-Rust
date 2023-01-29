@@ -1,6 +1,6 @@
 use crate::{
     instruction::Instruction,
-    keyboard::Keyboard,
+    keyboard::{Keyboard, Keys},
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
     util::{hex2decimal, make_instructions, set_panic_hook},
@@ -50,6 +50,7 @@ pub struct CpuDebugBlock {
     pub ip: usize,  // instruction pointer
     pub sp: usize,  // stack pointer denoting current top of stack
     pub i: Address, // special memory pointer I
+    pub keys: *const bool,
 }
 
 #[wasm_bindgen]
@@ -95,6 +96,7 @@ impl Cpu {
             ip: self.ip,
             sp: self.sp,
             i: self.i,
+            keys: self.keyboard.debug(),
         }
     }
 

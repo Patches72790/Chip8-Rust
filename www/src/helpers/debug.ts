@@ -28,6 +28,7 @@ export const updateCpuInternals = (debugDump: CpuDebugBlock) => {
 
   const registers = new Uint8Array(memory.buffer, debugDump.registers, 16);
   const stack = new Uint16Array(memory.buffer, debugDump.stack, 16);
+  const keys = new Uint8Array(memory.buffer, debugDump.keys, 16);
   const { delay_timer, sound_timer, ip, sp, i } = debugDump;
 
   setTextForDebugDiv("debug-registers", registers);
@@ -37,6 +38,7 @@ export const updateCpuInternals = (debugDump: CpuDebugBlock) => {
   setTextForDebugDiv("debug-ip", ip);
   setTextForDebugDiv("debug-sp", sp);
   setTextForDebugDiv("debug-i", i);
+  setTextForDebugDiv("debug-keys", keys);
 };
 
 const setTextForDebugDiv = (
