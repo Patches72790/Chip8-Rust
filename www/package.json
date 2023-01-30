@@ -1,5 +1,5 @@
 {
-  "name": "create-wasm-app",
+  "name": "chip8-rust-wasm",
   "version": "0.1.0",
   "description": "A Chip8 emulator written in Rust, Web Assembly, and JavaScript!",
   "main": "src/index.js",
@@ -7,16 +7,15 @@
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
-    "start:dev": "ENV='DEV' wasm-pack build && tsc && webpack serve -c webpack.config.js",
+    "start": "ENV='DEV' wasm-pack build && tsc && webpack serve -c webpack.config.js",
     "build:prod": "ENV='PROD' wasm-pack build && tsc && webpack -c webpack.prod.js",
     "esbuild": "tsc && node esbuild.dev.ts",
     "build": "wasm-pack build && tsc",
-    "clean": "rm -rf ./dist",
-    "start2": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server"
+    "clean": "rm -rf ./dist"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rustwasm/create-wasm-app.git"
+    "url": "git+https://github.com/Patches72790/Chip8-Rust.git"
   },
   "keywords": [
     "webassembly",
@@ -26,9 +25,6 @@
   ],
   "author": "Patrick Harvey",
   "license": "(MIT OR Apache-2.0)",
-  "bugs": {
-    "url": "https://github.com/rustwasm/create-wasm-app/issues"
-  },
   "homepage": "https://github.com/Patches72790/Chip8-Rust",
   "dependencies": {
     "chip8-emulator": "../pkg",
