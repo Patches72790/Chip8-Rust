@@ -7,8 +7,8 @@
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
-    "start": "ENV='DEV' wasm-pack build && tsc && webpack serve -c webpack.config.js",
-    "build:prod": "ENV='PROD' wasm-pack build && tsc && webpack -c webpack.prod.js",
+    "start": "ENV='DEV' wasm-pack build && webpack serve -c webpack.config.js",
+    "build:prod": "ENV='PROD' wasm-pack build && webpack -c webpack.prod.js",
     "esbuild": "tsc && node esbuild.dev.ts",
     "build": "wasm-pack build && tsc",
     "clean": "rm -rf ./dist"

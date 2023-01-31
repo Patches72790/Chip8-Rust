@@ -1,1 +1,1 @@
-import("./index.js").catch(console.error);
+import("/index.js").catch(console.error);
