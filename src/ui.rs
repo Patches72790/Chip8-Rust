@@ -10,7 +10,7 @@ static PIXEL_OFF_COLOR: &str = "#000000";
 static PIXEL_ON_COLOR: &str = "#FFFFFF";
 static PIXEL_SIZE: usize = 10;
 
-#[wasm_bindgen]
+//#[wasm_bindgen]
 pub fn run_chip8() -> Result<(), JsValue> {
     let mut cpu = Cpu::new();
     let width = cpu.width();

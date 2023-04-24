@@ -1,3 +1,1 @@
-import("./index.js")
-  .then((module) => console.log(module))
-  .catch(console.error);
+import("./index.js").catch(console.error);

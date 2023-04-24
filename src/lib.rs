@@ -7,7 +7,6 @@ mod ui;
 mod util;
 
 use types::Address;
-use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
@@ -17,7 +16,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 pub static BITS_IN_BYTE: u8 = 8;
 
 /// Variable constant for determining cycles per second (hertz)
-pub static INSTRUCTIONS_PER_CYCLE: u32 = 1;
+pub static INSTRUCTIONS_PER_CYCLE: u32 = 4;
 
 pub static DEBUG_MODE: bool = true;
 

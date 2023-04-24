@@ -16,6 +16,6 @@ module.exports = {
   },
   experiments: {
     asyncWebAssembly: true,
-    topLevelAwait: true,
+    //topLevelAwait: true,
   },
 };

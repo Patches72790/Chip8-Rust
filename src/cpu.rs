@@ -54,6 +54,9 @@ pub struct CpuDebugBlock {
 
 #[wasm_bindgen]
 impl Cpu {
+    pub fn load() {
+        console_log!("Loading chip8 cpu...");
+    }
     pub fn new() -> Cpu {
         set_panic_hook();
         let height = 32;
@@ -419,11 +422,12 @@ impl Cpu {
                     self.store_at_register(reg1, new_val)
                 }
                 Instruction::i8XYE(reg1, reg2) => {
-                    let y_value = self.get_from_register(reg2);
+                    let x_value = self.get_from_register(reg1);
+                    // config: set vx to value of vy first before shift
 
-                    let msb = (y_value & 0x80) >> 7;
+                    let msb = (x_value & 0x80) >> 7;
                     self.registers[0xf] = msb;
-                    self.store_at_register(reg1, y_value << 1)
+                    self.store_at_register(reg1, x_value << 1)
                 }
                 Instruction::i9XY0(reg1, reg2) => {
                     let reg_1_val = self.get_from_register(reg1);

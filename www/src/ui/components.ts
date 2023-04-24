@@ -8,7 +8,6 @@ import { createElementWith } from "./helpers";
  * and waits for user selection.
  */
 const renderChip8Console = () => {
-  console.log("Booting chip 8...");
   document.body.appendChild(RenderSelectRom());
 };
 
