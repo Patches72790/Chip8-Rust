@@ -1,8 +1,6 @@
-use std::fs::read_to_string;
-
 use crate::{
     instruction::Instruction,
-    keyboard::{Keyboard, Keys},
+    keyboard::Keyboard,
     types::{Address, RegData, Register},
     types::{REG_V0, REG_VF},
     util::{hex2decimal, make_instructions, set_panic_hook},
@@ -11,10 +9,9 @@ use crate::{
     KEY_B_ADDR, KEY_C_ADDR, KEY_D_ADDR, KEY_E_ADDR, KEY_F_ADDR, STACK_MAX_SIZE,
 };
 use fixedbitset::FixedBitSet;
-use js_sys::{Math, Object};
+use js_sys::Math;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen_test::{console_log, wasm_bindgen_test};
+use wasm_bindgen_test::console_log;
 
 ///
 /// Quirk instructions list for SUPER-CHIP
@@ -788,9 +785,4 @@ impl std::fmt::Display for Cpu {
 
         Ok(())
     }
-}
-
-#[wasm_bindgen_test]
-fn test_basic_display_commands() {
-    assert!(true)
 }

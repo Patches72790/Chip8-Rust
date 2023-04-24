@@ -67,5 +67,4 @@ macro_rules! make_instructions {
     };
 }
 
-pub(crate) use make_instruction;
 pub(crate) use make_instructions;
