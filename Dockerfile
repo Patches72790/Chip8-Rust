@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
 
 # install node
-ARG NODE_VERSION=14.16.0
-ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-x64
+ARG NODE_VERSION=18.16.0
+ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-arm64
 ARG NODE_HOME=/opt/$NODE_PACKAGE
 
 ENV NODE_PATH $NODE_HOME/lib/node_modules
