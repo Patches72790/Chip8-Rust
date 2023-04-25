@@ -18,5 +18,5 @@ jobs:
       with:
         registry: docker.io
         image_name: chip8-rust
-        login: ${{ DOCKER_USERNAME }}
-        password: ${{ DOCKER_PASSWORD }}
+        login: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
