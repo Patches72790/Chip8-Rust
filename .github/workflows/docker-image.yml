@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag chip8-rust:$(date +%s)
+    - name: Build the Docker image and push to registry
+      uses: cloudposse/github-action-docker-build-push@1.11.0
+      with:
+        registry: docker.io
+        image_name: chip8-rust
+        login: ${{ DOCKER_USERNAME }}
+        password: ${{ DOCKER_PASSWORD }}
