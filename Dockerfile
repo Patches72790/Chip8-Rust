@@ -24,6 +24,7 @@ RUN curl https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz | tar -xzC 
 
 # build npm project
 WORKDIR /app/www
+RUN npm install
 RUN npm run build:prod
 
 EXPOSE 8080
