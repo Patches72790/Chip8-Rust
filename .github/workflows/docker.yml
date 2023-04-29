@@ -9,14 +9,16 @@ on:
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - name: Build the Docker image and push to registry
-      uses: cloudposse/github-action-docker-build-push@1.11.0
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
       with:
-        registry: docker.io
-        image_name: chip8-rust
-        login: ${{ secrets.DOCKER_USERNAME }}
+        username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Build the Docker image and push to registry
+      uses: docker/build-push-action@4.0.0
+      with:
+        push: true
+        tags: patroclus72790/chip8-rust:latest
