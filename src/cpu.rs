@@ -38,6 +38,7 @@ pub struct Cpu {
     keyboard: Keyboard,
     pixel_on: String,
     pixel_off: String,
+    use_quirks: bool,
 }
 
 #[wasm_bindgen]
@@ -57,7 +58,7 @@ impl Cpu {
     pub fn load() {
         console_log!("Loading chip8 cpu...");
     }
-    pub fn new() -> Cpu {
+    pub fn new(use_quirks: bool) -> Cpu {
         set_panic_hook();
         let height = 32;
         let width = 64;
@@ -86,6 +87,7 @@ impl Cpu {
             keyboard,
             pixel_on: "◽".to_string(),
             pixel_off: "◾".to_string(),
+            use_quirks,
         }
     }
 
@@ -402,12 +404,16 @@ impl Cpu {
                     self.store_at_register(reg1, new_val)
                 }
                 Instruction::i8XY6(reg1, reg2) => {
-                    let y_value = self.get_from_register(reg2);
+                    let value = if self.use_quirks {
+                        self.get_from_register(reg1)
+                    } else {
+                        self.get_from_register(reg2)
+                    };
 
-                    let lsb = y_value & 0x01;
+                    let lsb = value & 0x01;
                     self.registers[0xf] = lsb;
 
-                    self.store_at_register(reg1, y_value >> 1)
+                    self.store_at_register(reg1, value >> 1)
                 }
                 Instruction::i8XY7(reg1, reg2) => {
                     let x_value = self.get_from_register(reg1);
@@ -422,12 +428,16 @@ impl Cpu {
                     self.store_at_register(reg1, new_val)
                 }
                 Instruction::i8XYE(reg1, reg2) => {
-                    let x_value = self.get_from_register(reg1);
+                    let value = if self.use_quirks {
+                        self.get_from_register(reg1)
+                    } else {
+                        self.get_from_register(reg2)
+                    };
                     // config: set vx to value of vy first before shift
 
-                    let msb = (x_value & 0x80) >> 7;
+                    let msb = (value & 0x80) >> 7;
                     self.registers[0xf] = msb;
-                    self.store_at_register(reg1, x_value << 1)
+                    self.store_at_register(reg1, value << 1)
                 }
                 Instruction::i9XY0(reg1, reg2) => {
                     let reg_1_val = self.get_from_register(reg1);
@@ -769,7 +779,7 @@ impl Cpu {
 
 impl Default for Cpu {
     fn default() -> Self {
-        Self::new()
+        Self::new(false)
     }
 }
 

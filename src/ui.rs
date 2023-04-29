@@ -1,7 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
 use wasm_bindgen::{prelude::*, JsCast};
-use wasm_bindgen_test::console_log;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 use crate::cpu::Cpu;
@@ -12,7 +11,7 @@ static PIXEL_SIZE: usize = 10;
 
 //#[wasm_bindgen]
 pub fn run_chip8() -> Result<(), JsValue> {
-    let mut cpu = Cpu::new();
+    let mut cpu = Cpu::new(false);
     let width = cpu.width();
     let height = cpu.height();
 

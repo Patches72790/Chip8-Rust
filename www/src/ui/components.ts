@@ -36,9 +36,14 @@ const RenderSelectRom = () => {
       console.error("Error finding file input");
       return;
     }
+    const fetchedFile = await fetch("roms/ibm-logo.ch8").then((file) =>
+      file.arrayBuffer()
+    );
+    const instructions_array = new Uint8Array(fetchedFile);
+    console.log(new Uint8Array(fetchedFile));
 
-    const array = await file_input.files[0].arrayBuffer();
-    const instructions_array = new Uint8Array(array);
+    //    const array = await file_input.files[0].arrayBuffer();
+    //    const instructions_array = new Uint8Array(array);
 
     RenderChip8(instructions_array);
   });
@@ -66,7 +71,7 @@ const RenderChip8 = (instructions_array: Uint8Array) => {
   document.body.appendChild(canvas);
 
   // start CPU
-  const cpu = Cpu.new();
+  const cpu = Cpu.new(true);
   cpu.load_instructions_from_file(instructions_array);
 
   const debugContainer = RenderDebugTools(cpu);
