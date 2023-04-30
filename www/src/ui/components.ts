@@ -11,6 +11,66 @@ const renderChip8Console = () => {
   document.body.appendChild(RenderSelectRom());
 };
 
+const getSelectRomForm = () => {
+  const _getSelect = () => {
+    const select = document.createElement("select");
+    select.name = "rom-selection";
+    const filenames = [
+      { filename: "bc_test.ch8", displayName: "BC Test" },
+      { filename: "chip8-test-suite.ch8", displayName: "Chip-8 Test Suite" },
+      { filename: "ibm-logo.ch8", displayName: "IBM Logo" },
+      { filename: "test_opcode.ch8", displayName: "OpCode Test" },
+    ];
+
+    const options = filenames.map(({ displayName, filename }) => {
+      const option = document.createElement("option");
+      option.textContent = displayName;
+      option.value = filename;
+      return option;
+    });
+
+    options.forEach((option) => select.appendChild(option));
+
+    return select;
+  };
+  const _getButton = () => {
+    const submit = document.createElement("input");
+    submit.type = "submit";
+    submit.value = "Select Rom";
+
+    return submit;
+  };
+
+  const form = document.createElement("form");
+  form.action = "rom-selection";
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const target = event.target as HTMLFormElement;
+    const foundSelectElement = target.elements.namedItem(
+      "rom-selection"
+    ) as HTMLSelectElement;
+    const filename = foundSelectElement.options.item(
+      foundSelectElement.selectedIndex
+    )?.value;
+
+    if (!filename) {
+      throw Error("Error, cannot find selected filename!");
+    }
+    const fetchedFile = await fetch(`roms/${filename}`).then((file) =>
+      file.arrayBuffer()
+    );
+    const instructions_array = new Uint8Array(fetchedFile);
+
+    RenderChip8(instructions_array);
+  });
+
+  form.appendChild(_getSelect());
+  form.appendChild(_getButton());
+
+  return form;
+};
+
 /**
  * Creates the Select ROM Node with input handler
  * for selecting and reading ROM instructions.
@@ -22,33 +82,14 @@ const RenderSelectRom = () => {
   const divElement = document.createElement("div");
   const titleElement = document.createElement("h1");
   const paraElement = document.createElement("p");
-  const inputElement = document.createElement("input");
   paraElement.textContent = "Load your Chip8 ROM!";
   divElement.id = "select-rom";
   titleElement.textContent = "Welcome to the Chip8 Emulator in Rust-WASM!";
 
-  inputElement.type = "file";
-  inputElement.id = "file-input";
+  const selectContainer = getSelectRomForm();
+  selectContainer.id = "rom-select-container";
 
-  inputElement.addEventListener("input", async (event) => {
-    const file_input = event.target as HTMLInputElement;
-    if (!file_input || !file_input.files || !file_input.files[0]) {
-      console.error("Error finding file input");
-      return;
-    }
-    const fetchedFile = await fetch("roms/ibm-logo.ch8").then((file) =>
-      file.arrayBuffer()
-    );
-    const instructions_array = new Uint8Array(fetchedFile);
-    console.log(new Uint8Array(fetchedFile));
-
-    //    const array = await file_input.files[0].arrayBuffer();
-    //    const instructions_array = new Uint8Array(array);
-
-    RenderChip8(instructions_array);
-  });
-
-  divElement.append(titleElement, paraElement, inputElement);
+  divElement.append(titleElement, paraElement, selectContainer);
 
   return divElement;
 };
@@ -56,16 +97,12 @@ const RenderSelectRom = () => {
 const RenderChip8 = (instructions_array: Uint8Array) => {
   const canvas = document.createElement("canvas");
   canvas.id = "canvas";
-  const selectRomContainer = document.getElementById("select-rom");
-
-  if (!selectRomContainer) {
-    throw Error("Error finding ROM selection div");
-  }
 
   // remove selection node
   const selectRomNode = document.getElementById("select-rom");
   if (!selectRomNode) throw Error("Error finding select rom node");
-  document.body.removeChild(selectRomNode);
+  //selectRomNode.style.display = "none";
+  //document.body.removeChild(selectRomNode);
 
   // add canvas node
   document.body.appendChild(canvas);
